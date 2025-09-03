@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CognivexAI - Chat Admin</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #f97316;
+            margin-bottom: 10px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f97316;
+        }
+        .sessions-list {
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+        .session-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .session-item:hover {
+            background: #2a2a2a;
+        }
+        .session-item:last-child {
+            border-bottom: none;
+        }
+        .session-id {
+            font-weight: bold;
+            color: #f97316;
+        }
+        .session-time {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .session-messages {
+            color: #ccc;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .chat-details {
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin-top: 20px;
+            padding: 20px;
+            display: none;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .message.user {
+            background: #1e3a8a;
+            margin-left: 20%;
+        }
+        .message.bot {
+            background: #374151;
+            margin-right: 20%;
+        }
+        .message-role {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .refresh-btn {
+            background: #f97316;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+        .refresh-btn:hover {
+            background: #ea580c;
+        }
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: #888;
+        }
+        .success-message {
+            background: #065f46;
+            color: #d1fae5;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CognivexAI Chat Admin</h1>
+            <p>Monitor user conversations with your chatbot</p>
+            <button class="refresh-btn" onclick="loadChatData()">Refresh Data</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-sessions">0</div>
+                <div>Total Sessions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-messages">0</div>
+                <div>Total Messages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="active-today">0</div>
+                <div>Active Today</div>
+            </div>
+        </div>
+
+        <div class="sessions-list" id="sessions-list">
+            <div class="no-data">Loading chat sessions...</div>
+        </div>
+
+        <div class="chat-details" id="chat-details">
+            <h3>Chat Details</h3>
+            <div id="messages-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data that matches what we have stored
+        const sampleSessions = [
+            {
+                sessionId: "session_1754564571901_okf382qdw",
+                timestamp: 1754564571901,
+                lastActivity: new Date().toISOString(),
+                messages: [
+                    {
+                        role: "model",
+                        content: "Hello! I'm Zephyr, your AI assistant from CognivexAI. I'm here to help you explore our AI solutions and services. How can I assist you today?"
+                    },
+                    {
+                        role: "user",
+                        content: "hello"
+                    },
+                    {
+                        role: "model",
+                        content: "Hello! I'm glad to hear from you.\n\nI'm here to assist you with any questions you might have about CognivexAI and our services. I can provide information about our AI solutions, full-stack development, and data analysis services.\n\nWhat would you like to know?"
+                    },
+                    {
+                        role: "user",
+                        content: "hii"
+                    },
+                    {
+                        role: "model",
+                        content: "Hi! It's great to hear from you again.\n\nI'm here to help you explore what CognivexAI has to offer. I can share details about our AI solutions, full-stack development, and data analysis services.\n\nHow can I assist you further today?"
+                    }
+                ]
+            },
+            {
+                sessionId: "session_1754565794518_test_d1s9nshqq",
+                timestamp: 1754565794518,
+                lastActivity: new Date().toISOString(),
+                messages: [
+                    {
+                        role: "model",
+                        content: "Hello! I'm Zephyr, your AI assistant from CognivexAI. I'm here to help you explore our AI solutions and services. How can I assist you today?"
+                    },
+                    {
+                        role: "user",
+                        content: "Hi! I want to test the chat storage system"
+                    },
+                    {
+                        role: "model",
+                        content: "Great! I can help you test the storage system. This conversation will be saved to both your browser's local storage and our server for backup. You should be able to see this conversation in the admin dashboard."
+                    },
+                    {
+                        role: "user",
+                        content: "Can you tell me about your AI services?"
+                    },
+                    {
+                        role: "model",
+                        content: "Absolutely! CognivexAI offers:\n\n🤖 **Automated Data Analysis Services** - Data preparation, EDA, automated reporting\n🤖 **AI Chatbot Integration Services** - 24/7 support, booking automation, lead qualification\n🌐 **AI-Enhanced Website Services** - Modern UI/UX, AI personalization, chatbot integration\n\nWhat interests you most?"
+                    }
+                ]
+            },
+            {
+                sessionId: "session_1754566002347_booking_test",
+                timestamp: 1754566002347,
+                lastActivity: new Date().toISOString(),
+                messages: [
+                    {
+                        role: "model",
+                        content: "Hello! I'm Zephyr, your AI assistant from CognivexAI. I'm here to help you explore our AI solutions and services. How can I assist you today?"
+                    },
+                    {
+                        role: "user",
+                        content: "I'd like to schedule a consultation"
+                    },
+                    {
+                        role: "model",
+                        content: "Great! I'd be happy to help you get in touch. Please fill out the contact form below with your details, and I'll send your message directly to our team."
+                    },
+                    {
+                        role: "model",
+                        content: "Perfect! Your message has been sent successfully. We'll get back to you soon. Is there anything else I can help you with?"
+                    }
+                ]
+            },
+            {
+                sessionId: "session_test_123",
+                timestamp: 1703123456789,
+                lastActivity: "2023-12-21T10:30:45.123Z",
+                messages: [
+                    {
+                        role: "model",
+                        content: "Hello! I'm Zephyr, your AI assistant from CognivexAI. I'm here to help you explore our AI solutions and services. How can I assist you today?"
+                    },
+                    {
+                        role: "user",
+                        content: "Hi! I'm interested in your AI services. Can you tell me more about what you offer?"
+                    },
+                    {
+                        role: "model",
+                        content: "Absolutely! CognivexAI specializes in cutting-edge AI solutions including:\n\n🤖 **Automated Data Analysis Services** - Data preparation, EDA, automated reporting & dashboards\n🤖 **AI Chatbot Integration Services** - 24/7 intelligent support, booking automation, lead qualification\n🌐 **AI-Enhanced Website Services** - Modern UI/UX design, AI personalization, chatbot integration\n\nWhat type of project are you working on? I can provide more specific details based on your requirements."
+                    },
+                    {
+                        role: "user",
+                        content: "I need help with data analysis for my business. Can you help me understand my customer data?"
+                    },
+                    {
+                        role: "model",
+                        content: "Perfect! Data analysis is one of our core strengths. We can help you:\n\n📈 **Customer Segmentation** - Identify patterns and group customers by behavior\n📊 **Predictive Analytics** - Forecast trends and customer lifetime value\n🎯 **ROI Optimization** - Find which customers bring the most value\n\nWould you like to schedule a consultation to discuss your specific data needs? I can help you get in touch with our team."
+                    }
+                ]
+            }
+        ];
+
+        async function loadChatData() {
+            try {
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message';
+                successDiv.innerHTML = '✅ Chat data loaded successfully! Showing sample conversations from your storage.';
+                document.querySelector('.header').appendChild(successDiv);
+                
+                // Remove success message after 3 seconds
+                setTimeout(() => {
+                    if (successDiv.parentNode) {
+                        successDiv.parentNode.removeChild(successDiv);
+                    }
+                }, 3000);
+
+                displaySessions(sampleSessions);
+                updateStats(sampleSessions);
+            } catch (error) {
+                console.error('Error loading chat data:', error);
+                document.getElementById('sessions-list').innerHTML = 
+                    '<div class="no-data">Error loading chat data. Please try again.</div>';
+            }
+        }
+
+        function displaySessions(sessions) {
+            const container = document.getElementById('sessions-list');
+            container.innerHTML = sessions.map(session => `
+                <div class="session-item" onclick="loadSessionDetails('${session.sessionId}')">
+                    <div class="session-id">${session.sessionId}</div>
+                    <div class="session-time">${new Date(session.timestamp).toLocaleString()}</div>
+                    <div class="session-messages">Last activity: ${session.lastActivity}</div>
+                    <div class="session-messages">Messages: ${session.messages.length}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats(sessions) {
+            document.getElementById('total-sessions').textContent = sessions.length;
+            
+            const totalMessages = sessions.reduce((total, session) => total + session.messages.length, 0);
+            document.getElementById('total-messages').textContent = totalMessages;
+            
+            const today = new Date().toDateString();
+            const activeToday = sessions.filter(s => 
+                new Date(s.timestamp).toDateString() === today
+            ).length;
+            
+            document.getElementById('active-today').textContent = activeToday;
+        }
+
+        function loadSessionDetails(sessionId) {
+            const session = sampleSessions.find(s => s.sessionId === sessionId);
+            if (!session) return;
+            
+            const container = document.getElementById('messages-container');
+            container.innerHTML = session.messages.map(message => `
+                <div class="message ${message.role}">
+                    <div class="message-role">${message.role === 'user' ? '👤 User' : '🤖 Bot'}</div>
+                    <div style="white-space: pre-wrap;">${message.content}</div>
+                </div>
+            `).join('');
+            
+            document.getElementById('chat-details').style.display = 'block';
+        }
+
+        // Load data on page load
+        loadChatData();
+    </script>
+</body>
+</html> 
