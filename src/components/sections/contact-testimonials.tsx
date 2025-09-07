@@ -297,6 +297,15 @@ export default function ContactTestimonials() {
             className="order-3 lg:order-2 flex justify-center lg:justify-end lg:pt-12"
           >
             <div className="relative w-full max-w-md">
+              {/* Testimonials Heading */}
+              <div className="text-center mb-6">
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                  What Our Clients Say
+                </h3>
+                <p className="text-sm text-gray-300">
+                  Real feedback from amazing people
+                </p>
+              </div>
               {/* Navigation Arrows - Positioned outside the box */}
               <button
                 onClick={prevSlide}

@@ -22,6 +22,7 @@ export default function RootLayout({
     <html suppressHydrationWarning>
              <head>
                <meta charSet="utf-8" />
+               <meta name="viewport" content="width=device-width, initial-scale=1" />
                <title>CognivexAI</title>
                <meta name="description" content="A discovery engine for everyone." />
                <link rel="preconnect" href="https://fonts.googleapis.com" />
