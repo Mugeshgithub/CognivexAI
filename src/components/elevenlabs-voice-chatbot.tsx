@@ -442,7 +442,7 @@ export default function ElevenLabsVoiceChatbot() {
           name: 'What\'s The Story',
           description: 'Startup Journey Analysis & No-Code Platform',
           industry: 'Business Intelligence',
-          url: '/wats.pdf',
+          url: '/Wats.pdf',
           type: 'pdf',
           features: ['One Year Analysis', 'Startup Metrics', 'No-Code Platform Development']
         },
@@ -1619,7 +1619,7 @@ export default function ElevenLabsVoiceChatbot() {
                         if (project.type === 'pdf') {
                           return (
                             <iframe
-                              src={`${caseStudyBrowser.currentUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                              src={`${project.url}#toolbar=1&navpanes=1&scrollbar=1`}
                               className="w-full h-full border-0"
                               title="PDF Viewer"
                               style={{
