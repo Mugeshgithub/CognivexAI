@@ -3,7 +3,6 @@
 
 import { useRef, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useLanguage } from '@/contexts/language-context';
 
 const NeuralNetwork3D = ({ scrollYProgress }: { scrollYProgress: any }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -175,75 +174,44 @@ const NeuralNetwork3D = ({ scrollYProgress }: { scrollYProgress: any }) => {
 };
 
 export default function CosmicJourney() {
-  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end'],
   });
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const { top, bottom } = containerRef.current.getBoundingClientRect();
-      const inView = top < window.innerHeight && bottom > 0;
-      
-      if (inView && audio.paused) {
-        audio.play().catch(error => {
-          console.log("Autoplay prevented:", error);
-        });
-      } else if (!inView && !audio.paused) {
-        audio.pause();
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (audio) {
-        audio.pause();
-      }
-    };
-  }, []);
-
   const journeyContent = [
     {
-      header: t('journey.section1.header'),
-      text: t('journey.section1.text'),
+      header: 'THE AI POLYMATH EMERGES',
+      text: 'In 2025, CognivexAI steps beyond boundaries — moving fluidly between data, design, and intelligent automation. Our mission: to create AI that enhances every aspect of human endeavor.',
       position: 'left'
     },
     {
-      header: t('journey.section2.header'),
-      text: t('journey.section2.text'),
+      header: 'BREAKING NEW GROUND',
+      text: 'Data Sanity → Our first leap into end-to-end data automation, turning hours of analysis into minutes. Community Chatbot → A new way for service providers and seekers to connect, powered by AI. Vision AI Assistant → Real-time screen analysis that sees what you see, eliminating screenshots and context switching.',
       position: 'right'
     },
     {
-      header: t('journey.section3.header'),
-      text: t('journey.section3.text'),
+      header: 'THE POLYMATH APPROACH',
+      text: 'Unlike single-focus companies, CognivexAI thrives across multiple domains — combining data analysis, web development, product design, and intelligent automation into holistic solutions.',
       position: 'left'
     },
     {
-      header: t('journey.section4.header'),
-      text: t('journey.section4.text'),
+      header: 'BUILDING THE FUTURE',
+      text: 'This is just the beginning. As we evolve, CognivexAI continues to expand its polymath ecosystem — where versatility meets innovation, and AI becomes a true partner in human creativity and problem-solving.',
       position: 'right'
     },
   ];
 
   return (
     <section
+      key="journey"
       id="journey"
       ref={containerRef}
-      className="relative w-full h-[400vh] bg-black"
+      className="relative w-full h-[500vh] bg-black"
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        <audio ref={audioRef} src="path/to/your/alpha-music.mp3" loop playsInline />
         <NeuralNetwork3D scrollYProgress={scrollYProgress} />
         
         {/* Orange Accent Particles */}
@@ -282,8 +250,8 @@ export default function CosmicJourney() {
             </motion.h1>
             
             {journeyContent.map((item, index) => {
-              const sectionStart = index * 0.25;
-              const sectionEnd = sectionStart + 0.25;
+              const sectionStart = index * 0.2;
+              const sectionEnd = sectionStart + 0.2;
               const fadeInStart = sectionStart;
               const fadeInEnd = sectionStart + 0.05; // Faster fade in
               const fadeOutStart = sectionEnd - 0.05; // Faster fade out
@@ -306,10 +274,21 @@ export default function CosmicJourney() {
                   style={{ 
                     opacity,
                     y,
-                    top: `${20 + index * 18}%`,
+                    top: `${10 + index * 20}%`,
                     maxWidth: '500px',
                   }}
                 >
+                  {/* Section Header */}
+                  <motion.h3 
+                    className="text-base md:text-lg font-bold text-orange-400 mb-3 tracking-wider"
+                    initial={{ opacity: 0, x: item.position === 'left' ? -20 : 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {item.header}
+                  </motion.h3>
+                  
+                  {/* Section Content */}
                   <p className="text-sm md:text-base text-white/90 font-light leading-relaxed tracking-wide">
                     {item.text.split('.').map((sentence, idx) => (
                       <span key={idx}>
@@ -320,6 +299,22 @@ export default function CosmicJourney() {
                       </span>
                     ))}
                   </p>
+                  
+                  {/* Section Separator Dot */}
+                  <motion.div 
+                    className={`absolute ${item.position === 'left' ? 'right-0' : 'left-0'} top-1/2 transform -translate-y-1/2 w-3 h-3 bg-orange-400 rounded-full`}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                  />
+                  
+                  {/* Connection Line */}
+                  <motion.div 
+                    className={`absolute ${item.position === 'left' ? 'right-1.5' : 'left-1.5'} top-1/2 w-0.5 h-16 bg-gradient-to-b ${item.position === 'left' ? 'from-orange-400 to-transparent' : 'from-transparent to-orange-400'}`}
+                    initial={{ height: 0 }}
+                    animate={{ height: '4rem' }}
+                    transition={{ delay: 0.7, duration: 0.8 }}
+                  />
                 </motion.div>
               );
             })}

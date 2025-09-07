@@ -46,3 +46,6 @@ export default function SplashScreen({ isVisible, onFinished }: { isVisible: boo
   );
 }
 
+
+
+

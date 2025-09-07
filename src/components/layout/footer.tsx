@@ -5,11 +5,9 @@ import Link from 'next/link';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { useLanguage } from '@/contexts/language-context';
 
 export default function Footer() {
   const { theme, setTheme } = useTheme();
-  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch
@@ -33,9 +31,9 @@ export default function Footer() {
             
             {/* Tagline */}
             <div className="flex flex-col">
-              <p className="text-gray-900 dark:text-white text-sm">{t('footer.tagline.ai')}</p>
-              <p className="text-gray-900 dark:text-white text-sm">{t('footer.tagline.empowering')}</p>
-              <p className="text-gray-900 dark:text-white text-sm">{t('footer.tagline.engineering')}</p>
+              <p className="text-gray-900 dark:text-white text-sm">AI Innovation Studio</p>
+              <p className="text-gray-900 dark:text-white text-sm">Empowering minds,</p>
+              <p className="text-gray-900 dark:text-white text-sm">engineering magic.</p>
               <div className="w-1 h-1 bg-gray-400 rounded-full mt-2"></div>
             </div>
           </div>
@@ -43,19 +41,19 @@ export default function Footer() {
           {/* Right Side - Navigation Columns */}
           <div className="grid grid-cols-3 gap-12">
             <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-medium text-gray-400 tracking-widest uppercase">{t('footer.sections.useful')}</h3>
-              <Link href="#products" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors">{t('header.manifesto')}</Link>
-              <Link href="#journey" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors">{t('footer.sections.journey')}</Link>
+              <h3 className="text-xs font-medium text-gray-400 tracking-widest uppercase">Useful Links</h3>
+              <Link href="#products" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors">About</Link>
+              <Link href="#journey" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Journey</Link>
             </div>
             
             <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-medium text-gray-400 tracking-widest uppercase">{t('footer.sections.legal')}</h3>
-              <Link href="/privacy" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">{t('footer.privacy')}</Link>
-              <Link href="/terms" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">{t('footer.terms')}</Link>
+              <h3 className="text-xs font-medium text-gray-400 tracking-widest uppercase">Legal</h3>
+              <Link href="/privacy" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Privacy Policy</Link>
+              <Link href="/terms" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer">Terms of Service</Link>
             </div>
             
             <div className="flex flex-col gap-3">
-              <h3 className="text-xs font-medium text-gray-400 tracking-widest uppercase">{t('footer.sections.updates')}</h3>
+              <h3 className="text-xs font-medium text-gray-400 tracking-widest uppercase">Updates</h3>
               <Link href="https://www.linkedin.com/company/cognivexai/" className="text-gray-900 dark:text-white text-sm hover:text-gray-600 dark:hover:text-gray-300 transition-colors" target="_blank" rel="noopener noreferrer">LinkedIn</Link>
             </div>
           </div>

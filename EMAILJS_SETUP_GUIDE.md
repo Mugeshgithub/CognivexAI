@@ -132,3 +132,6 @@ GMAIL_REFRESH_TOKEN=your_gmail_refresh_token
 
 **Need help?** Check EmailJS documentation or let me know if you want to switch to Gmail API instead.
 
+
+
+

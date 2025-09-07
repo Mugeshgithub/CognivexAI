@@ -103,3 +103,6 @@ GMAIL_FROM_EMAIL=snazzy.mugi@gmail.com
 
 **Need help?** The Gmail API setup is much more reliable than EmailJS. Let me know when you've completed the setup!
 
+
+
+

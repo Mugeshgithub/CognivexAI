@@ -2,59 +2,83 @@
 
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
-
-const testimonials = [
-  {
-    id: 1,
-    name: "Portfolio People Review",
-    role: "Complete Website Design",
-    company: "4 Photographers Portfolio",
-    content: "Exceptional website design that perfectly captured our vision. The portfolio showcases our photography work beautifully with stunning visuals and seamless user experience.",
-    rating: 4,
-    avatar: "📸"
-  },
-  {
-    id: 2,
-    name: "Steve George",
-    role: "Data Analysis",
-    company: "Cyber Security - Ireland",
-    content: "Outstanding data analysis work for the WhatsTheStory project. Deep technical expertise combined with clear communication made complex security insights accessible.",
-    rating: 4,
-    avatar: "🛡️"
-  },
-  {
-    id: 3,
-    name: "Narmadha",
-    role: "Full Stack Web Design",
-    company: "Software Tester - India",
-    content: "Incredible full-stack development skills. The website is not only visually stunning but also technically robust with excellent performance and user experience.",
-    rating: 5,
-    avatar: "💻"
-  },
-  {
-    id: 4,
-    name: "Tech Solutions Inc",
-    role: "AI Integration",
-    company: "Software Company - USA",
-    content: "The AI chatbot integration exceeded our expectations. It handles customer queries efficiently and provides accurate responses 24/7.",
-    rating: 4,
-    avatar: "🤖"
-  },
-  {
-    id: 5,
-    name: "Digital Marketing Pro",
-    role: "Web Development",
-    company: "Marketing Agency - Canada",
-    content: "Fast, responsive, and modern website that perfectly represents our brand. The development process was smooth and professional.",
-    rating: 4,
-    avatar: "🚀"
-  }
-];
+import { useState, useEffect, useRef } from 'react';
 
 export default function Testimonials() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  const testimonials = [
+    {
+      id: 1,
+      name: "Aniefiok ASUQUE",
+      role: "Producer/Composer/Pianist",
+      company: "Paris, France",
+      content: `Advanced Portfolio with Admin Control\n\nThe website is impressive and I really love the work. The admin control system allows me to easily update and delete my live performance information and collaborations with other artists. The attention to detail and the way everything flows together is amazing. You've created something truly special that stands out from the crowd.`,
+      rating: 5,
+      avatar: "🎹",
+      workLink: "https://aniefoik.vercel.app/"
+    },
+    {
+      id: 2,
+      name: "Narmadha",
+      role: "Software Tester",
+      company: "India",
+      content: `Full-Stack AI Web Application\n\nCognivexAI built a great web app that changed how I create stories. It's intuitive and the AI integration works well. They handled everything from the user interface to the backend nicely. Now I can focus on my creativity instead of struggling with technical stuff.`,
+      rating: 5,
+      avatar: "✨",
+      workLink: "https://studio--story-spark-a2jdn.us-central1.hosted.app/"
+    },
+    {
+      id: 3,
+      name: "Devika Sinha",
+      role: "Fine Art Photographer",
+      company: "Paris, France",
+      content: `Portfolio with Shop Prints\n\nThe website looks absolutely stunning and I'm really happy with everything. My parents also saw the new version of the website yesterday and they loved it. The design perfectly captures my artistic vision and the user experience is seamless. Thank you so much for the excellent work!`,
+      rating: 5,
+      avatar: "🎨",
+      workLink: "https://www.devikasinha.com/"
+    },
+    {
+      id: 4,
+      name: "Stefff",
+      role: "Photographer/Director",
+      company: "Paris, France",
+      content: `Portfolio with Shop Prints\n\nI asked Mugesh to build my website and he did it perfectly. Always great response time and always willing to make things work. Great experience working with Mugesh.`,
+      rating: 5,
+      avatar: "📸",
+      workLink: "https://www.steffff.com/"
+    },
+    {
+      id: 5,
+      name: "Dimitra Polic",
+      role: "Photographer",
+      company: "Paris, France",
+      content: `Creative Portfolio Website\n\nThe website looks really nice. The design perfectly captures the essence of my work and the user experience is smooth and intuitive. Great job on bringing my portfolio to life!`,
+      rating: 5,
+      avatar: "📷",
+      workLink: "https://www.dimitrapolic.com/"
+    },
+    {
+      id: 6,
+      name: "Ashwith S Pai",
+      role: "Documentary Photographer",
+      company: "Paris, France",
+      content: `Creative Portfolio Website\n\nGood work! The website perfectly showcases my motorsport photography with excellent gallery functionality and smooth user experience. Great job on the creative portfolio!`,
+      rating: 5,
+      avatar: "🏁",
+      workLink: "https://www.ashwithspai.com/"
+    },
+    {
+      id: 7,
+      name: "Steve George",
+      role: "Data Analysis Specialist",
+      company: "Cyber Security - Ireland",
+      content: "Outstanding data analysis work for the WhatsTheStory project. Deep technical expertise combined with clear communication made complex security insights accessible.",
+      rating: 4,
+      avatar: "🛡️"
+    }
+  ];
 
   // Auto-play carousel
   useEffect(() => {
@@ -197,29 +221,38 @@ export default function Testimonials() {
                         <Quote className="w-3 h-3 text-white" />
                       </div>
 
-                      {/* Rating Stars */}
-                      <div className="flex items-center gap-1 mb-4">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            className={`w-4 h-4 ${
-                              i < testimonial.rating 
-                                ? 'fill-yellow-400 text-yellow-400' 
-                                : 'text-gray-600'
-                            }`} 
-                          />
-                        ))}
-                      </div>
-
-                      {/* Content */}
-                      <p className="text-gray-200 text-sm leading-relaxed mb-4 line-clamp-4">
-                        "{testimonial.content}"
-                      </p>
-
-                      {/* Author Info */}
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl">{testimonial.avatar}</div>
-                        <div>
+                      {/* Author Info - Moved to top */}
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 flex items-center justify-center bg-gray-700 rounded-full overflow-hidden">
+                          {testimonial.id === 1 ? (
+                            <img 
+                              src="/My Pics 6.jpeg" 
+                              alt={testimonial.name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : testimonial.id === 2 ? (
+                            <img 
+                              src="/WhatsApp Image 2025-09-07 at 03.38.51.jpeg" 
+                              alt={testimonial.name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : testimonial.id === 5 ? (
+                            <img 
+                              src="/Remove background project (3)-min.png" 
+                              alt={testimonial.name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : testimonial.id === 6 ? (
+                            <img 
+                              src="/aswith.jpeg" 
+                              alt={testimonial.name}
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <span className="text-2xl">{testimonial.avatar}</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
                           <h4 className="font-semibold text-white text-sm">
                             {testimonial.name}
                           </h4>
@@ -229,8 +262,30 @@ export default function Testimonials() {
                           <p className="text-gray-400 text-xs">
                             {testimonial.company}
                           </p>
+                          {testimonial.workLink && (
+                            <a 
+                              href={testimonial.workLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-300 hover:text-blue-200 text-xs mt-1 transition-colors duration-200"
+                            >
+                              View Work ↗
+                            </a>
+                          )}
                         </div>
                       </div>
+
+                      {/* Project Type */}
+                      <div className="mb-4">
+                        <h4 className="text-orange-400 font-semibold text-sm">
+                          {testimonial.content.split('\n\n')[0]}
+                        </h4>
+                      </div>
+
+                      {/* Content */}
+                      <p className="text-gray-200 text-sm leading-relaxed mb-4 line-clamp-4">
+                        "{testimonial.content.split('\n\n')[1]}"
+                      </p>
 
                       {/* Hover Effect Border */}
                       <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-indigo-500/0 group-hover:from-blue-500/10 group-hover:via-purple-500/10 group-hover:to-indigo-500/10 transition-all duration-300"></div>
@@ -273,3 +328,4 @@ export default function Testimonials() {
     </section>
   );
 }
+

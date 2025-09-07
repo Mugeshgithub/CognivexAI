@@ -110,3 +110,6 @@ To actually send the emails, you can:
 
 **Ready to test?** Just add your `GEMINI_API_KEY` to `.env.local` and restart your server!
 
+
+
+

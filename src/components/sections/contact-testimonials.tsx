@@ -18,7 +18,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Send, MessageCircle, Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import { useEffect, useState } from 'react';
-import { useLanguage } from '@/contexts/language-context';
 import { motion } from 'framer-motion';
 
 const formSchema = z.object({
@@ -29,31 +28,74 @@ const formSchema = z.object({
 
 type ContactFormValues = z.infer<typeof formSchema>;
 
-const testimonials = [
-  {
-    id: 1,
-    name: "Narmadha",
-    role: "Software Tester/Storyteller",
-    company: "India",
-    content: "Full Stack AI Platform - Story Creation Tool\n\nCognivexAI built an amazing web app that completely changed how I create stories! It's super intuitive and the AI integration works like magic. They handled everything from the user interface to the backend perfectly. Now I can focus on my creativity instead of struggling with technical stuff. Highly recommend!",
-    rating: 5,
-    avatar: "✍️"
-  },
-  {
-    id: 2,
-    name: "Stefff",
-    role: "Photographer/Director",
-    company: "France",
-    content: "Retro Design Website\n\nI asked Mugesh to build my website and he did it perfectly. Always great response time and always willing to make things work. Great experience working with Mugesh to bring my website to life.",
-    rating: 5,
-    avatar: "📸"
-  }
-];
+// This will be moved inside the component to use translations
 
 export default function ContactTestimonials() {
   const { toast } = useToast();
-  const { t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const testimonials = [
+    {
+      id: 1,
+      name: "Aniefiok ASUQUE",
+      role: "Producer/Composer/Pianist",
+      company: "Paris, France",
+      content: `Advanced Portfolio with Admin Control\n\nThe website is impressive and I really love the work. The admin control system allows me to easily update and delete my live performance information and collaborations with other artists. The attention to detail and the way everything flows together is amazing. You've created something truly special that stands out from the crowd.`,
+      rating: 5,
+      avatar: "🎹",
+      workLink: "https://aniefoik.vercel.app/"
+    },
+    {
+      id: 2,
+      name: "Narmadha",
+      role: "Software Tester",
+      company: "India",
+      content: `Full-Stack AI Web Application\n\nCognivexAI built a great web app that changed how I create stories. It's intuitive and the AI integration works well. They handled everything from the user interface to the backend nicely. Now I can focus on my creativity instead of struggling with technical stuff.`,
+      rating: 5,
+      avatar: "✨",
+      workLink: "https://studio--story-spark-a2jdn.us-central1.hosted.app/"
+    },
+    {
+      id: 3,
+      name: "Devika Sinha",
+      role: "Fine Art Photographer",
+      company: "Paris, France",
+      content: `Portfolio with Shop Prints\n\nThe website looks absolutely stunning and I'm really happy with everything. My parents also saw the new version of the website yesterday and they loved it. The design perfectly captures my artistic vision and the user experience is seamless. Thank you so much for the excellent work!`,
+      rating: 5,
+      avatar: "🎨",
+      workLink: "https://www.devikasinha.com/"
+    },
+    {
+      id: 4,
+      name: "Stefff",
+      role: "Photographer/Director",
+      company: "Paris, France",
+      content: `Portfolio with Shop Prints\n\nI asked Mugesh to build my website and he did it perfectly. Always great response time and always willing to make things work. Great experience working with Mugesh.`,
+      rating: 5,
+      avatar: "📸",
+      workLink: "https://www.steffff.com/"
+    },
+    {
+      id: 5,
+      name: "Dimitra Polic",
+      role: "Photographer",
+      company: "Paris, France",
+      content: `Creative Portfolio Website\n\nThe website looks really nice. The design perfectly captures the essence of my work and the user experience is smooth and intuitive. Great job on bringing my portfolio to life!`,
+      rating: 5,
+      avatar: "📷",
+      workLink: "https://www.dimitrapolic.com/"
+    },
+    {
+      id: 6,
+      name: "Ashwith S Pai",
+      role: "Documentary Photographer",
+      company: "Paris, France",
+      content: `Creative Portfolio Website\n\nGood work! The website perfectly showcases my motorsport photography with excellent gallery functionality and smooth user experience. Great job on the creative portfolio!`,
+      rating: 5,
+      avatar: "🏁",
+      workLink: "https://www.ashwithspai.com/"
+    }
+  ];
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   // Auto-play carousel
@@ -114,8 +156,8 @@ export default function ContactTestimonials() {
 
       if (emailResult.text === 'OK') {
         toast({
-          title: 'Message Sent Successfully! 🚀',
-          description: 'Thank you for your message! We\'ll get back to you soon.',
+          title: 'Message sent successfully!',
+          description: 'Thank you for your message. We will get back to you soon.',
         });
         form.reset();
       } else {
@@ -127,14 +169,14 @@ export default function ContactTestimonials() {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         variant: 'destructive',
-        title: 'Submission Failed',
-        description: `Error: ${errorMessage}. Please try again later.`,
+        title: 'Failed to send message',
+        description: `Error: ${errorMessage}. Please try again or contact us directly.`,
       });
     }
   }
 
   return (
-    <section id="contact" className="w-full py-16 bg-black relative overflow-hidden">
+    <section key="contact" id="contact" className="w-full py-16 bg-black relative overflow-hidden">
       {/* Background - Pure black */}
       <div className="absolute inset-0 bg-black"></div>
 
@@ -212,7 +254,7 @@ export default function ContactTestimonials() {
                         <FormControl>
                           <div className="relative group">
                             <FormLabel className="absolute left-3 top-2 text-xs text-zinc-400 transition-all duration-200 group-focus-within:text-white">
-                              Message (Optional)
+                              Message
                             </FormLabel>
                             <Textarea 
                               className="min-h-[100px] bg-zinc-900/60 border-zinc-700 focus:ring-gray-500/50 focus:border-gray-500/50 text-white rounded-lg pt-8 transition-all duration-200 hover:border-zinc-600 resize-none text-sm" 
@@ -233,7 +275,7 @@ export default function ContactTestimonials() {
                     {form.formState.isSubmitting ? (
                       <div className="flex items-center space-x-3">
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>Sending Message...</span>
+                        <span>Sending...</span>
                       </div>
                     ) : (
                       <div className="flex items-center space-x-3">
@@ -289,36 +331,38 @@ export default function ContactTestimonials() {
                       >
                         {/* Card - Perfectly aligned with contact form */}
                         <div className="relative p-6 min-h-[280px] flex flex-col">
-                          {/* Project Title - Above star rating */}
-                          <div className="mb-4">
-                            <h4 className="text-orange-400 font-semibold text-sm mb-2">
-                              {testimonial.content.split('\n\n')[0]}
-                            </h4>
-                          </div>
-
-                          {/* Rating Stars */}
-                          <div className="flex items-center gap-1 mb-4">
-                            {[...Array(5)].map((_, i) => (
-                              <Star 
-                                key={i} 
-                                className={`w-4 h-4 ${
-                                  i < testimonial.rating 
-                                    ? 'fill-yellow-400 text-yellow-400' 
-                                    : 'text-gray-600'
-                                }`} 
-                              />
-                            ))}
-                          </div>
-
-                          {/* Review Content */}
-                          <p className="text-gray-200 text-sm leading-relaxed mb-4 flex-grow">
-                            "{testimonial.content.split('\n\n')[1]}"
-                          </p>
-
-                          {/* Author Info */}
-                          <div className="flex items-center gap-3 mt-auto">
-                            <div className="text-2xl">{testimonial.avatar}</div>
-                            <div>
+                          {/* Author Info - Moved to top */}
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 flex items-center justify-center bg-gray-700 rounded-full overflow-hidden">
+                              {testimonial.id === 1 ? (
+                                <img 
+                                  src="/My Pics 6.jpeg" 
+                                  alt={testimonial.name}
+                                  className="w-full h-full object-cover rounded-full"
+                                />
+                              ) : testimonial.id === 2 ? (
+                                <img 
+                                  src="/WhatsApp Image 2025-09-07 at 03.38.51.jpeg" 
+                                  alt={testimonial.name}
+                                  className="w-full h-full object-cover rounded-full"
+                                />
+                              ) : testimonial.id === 5 ? (
+                                <img 
+                                  src="/Remove background project (3)-min.png" 
+                                  alt={testimonial.name}
+                                  className="w-full h-full object-cover rounded-full"
+                                />
+                              ) : testimonial.id === 6 ? (
+                                <img 
+                                  src="/aswith.jpeg" 
+                                  alt={testimonial.name}
+                                  className="w-full h-full object-cover rounded-full"
+                                />
+                              ) : (
+                                <span className="text-2xl">{testimonial.avatar}</span>
+                              )}
+                            </div>
+                            <div className="flex-1">
                               <h4 className="font-semibold text-white text-sm">
                                 {testimonial.name}
                               </h4>
@@ -328,8 +372,30 @@ export default function ContactTestimonials() {
                               <p className="text-gray-400 text-xs">
                                 {testimonial.company}
                               </p>
+                              {testimonial.workLink && (
+                                <a 
+                                  href={testimonial.workLink} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-orange-300 hover:text-orange-200 text-xs mt-1 transition-colors duration-200"
+                                >
+                                  View Work ↗
+                                </a>
+                              )}
                             </div>
                           </div>
+
+                          {/* Project Type */}
+                          <div className="mb-4">
+                            <h4 className="text-orange-400 font-semibold text-sm">
+                              {testimonial.content.split('\n\n')[0]}
+                            </h4>
+                          </div>
+
+                          {/* Review Content */}
+                          <p className="text-gray-200 text-sm leading-relaxed mb-4 flex-grow">
+                            "{testimonial.content.split('\n\n')[1]}"
+                          </p>
                         </div>
                       </motion.div>
                     </div>
@@ -358,3 +424,4 @@ export default function ContactTestimonials() {
     </section>
   );
 }
+

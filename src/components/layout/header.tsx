@@ -1,21 +1,18 @@
-
 'use client';
 
 import Link from 'next/link';
+
 import { Button } from '@/components/ui/button';
 import { AnimatedLogo } from '@/components/ui/animated-logo';
 import { Menu, X, Play, Pause } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { useLanguage } from '@/contexts/language-context';
-import { LanguageToggle, LanguageToggleCompact } from '@/components/ui/language-toggle';
 
 const navLinks = [
-  { href: '#products', labelKey: 'header.manifesto' as const },
-  { href: '#contact', labelKey: 'header.discover' as const },
+  { href: '#products', label: 'About' },
+  { href: '#contact', label: 'Contact' },
 ];
 
 export default function Header() {
-  const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -45,13 +42,13 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 z-40 w-full animate-fade-in bg-background/80 backdrop-blur-sm border-b border-border/20">
-       <div className="container flex h-16 md:h-20 items-center justify-between px-4">
-         <Link href="/" className="flex items-center space-x-2">
-            <AnimatedLogo className="h-5 w-5 md:h-6 md:w-6" />
-            <span className="text-lg md:text-xl font-bold text-white">
-              CognivexAI
-            </span>
-         </Link>
+      <div className="container flex h-16 md:h-20 items-center justify-between px-4">
+        <Link href="/" className="flex items-center space-x-2">
+          <AnimatedLogo className="h-5 w-5 md:h-6 md:w-6" />
+          <span className="text-lg md:text-xl font-bold text-white">
+            CognivexAI
+          </span>
+        </Link>
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
@@ -61,12 +58,9 @@ export default function Header() {
               href={link.href}
               className="text-foreground/80 transition-colors hover:text-foreground"
             >
-              {t(link.labelKey)}
+              {link.label}
             </Link>
           ))}
-          
-          {/* Language Toggle */}
-          <LanguageToggle />
           
           {/* Simple Music Control */}
           <Button
@@ -74,7 +68,7 @@ export default function Header() {
             variant="ghost"
             size="icon"
             className="w-8 h-8 text-orange-400 hover:text-orange-300 hover:bg-orange-500/20"
-            title={isPlaying ? t('header.music.pause') : t('header.music.play')}
+            title={isPlaying ? 'Pause Music' : 'Play Music'}
           >
             {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
@@ -82,16 +76,13 @@ export default function Header() {
 
         {/* Mobile Menu Button */}
         <div className="flex items-center space-x-2 md:hidden">
-          {/* Language Toggle for Mobile */}
-          <LanguageToggleCompact />
-          
           {/* Mobile Music Control */}
           <Button
             onClick={toggleMusic}
             variant="ghost"
             size="icon"
             className="w-8 h-8 text-orange-400 hover:text-orange-300 hover:bg-orange-500/20"
-            title={isPlaying ? t('header.music.pause') : t('header.music.play')}
+            title={isPlaying ? 'Pause Music' : 'Play Music'}
           >
             {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
@@ -117,7 +108,7 @@ export default function Header() {
                 className="block text-foreground/80 transition-colors hover:text-foreground py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                {t(link.labelKey)}
+                {link.label}
               </Link>
             ))}
           </nav>

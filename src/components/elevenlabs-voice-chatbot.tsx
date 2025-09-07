@@ -1,19 +1,18 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, X, Loader2, User, ExternalLink, Calendar, Phone, Mail, MessageCircle, Mic, MicOff, Volume2, VolumeX, Settings, Play, Pause } from 'lucide-react';
+import { Bot, Send, X, Loader2, User, ExternalLink, Calendar, Phone, Mail, MessageCircle, Mic, MicOff, Volume2, VolumeX, Settings, Play, Pause, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useLanguage } from '@/contexts/language-context';
 import emailjs from '@emailjs/browser';
 
 import type { ChatMessage } from '@/ai/schemas/chatbot';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { AnimatedLogo } from './ui/animated-logo';
+import { CognivexRAGSystem } from '@/ai/rag/retrieval-system';
 
 interface RichResponse {
   text: string;
@@ -45,14 +44,247 @@ interface ElevenLabsVoice {
   labels: Record<string, string>;
 }
 
+// Booking Form Component
+interface BookingFormProps {
+  onSubmit: (name: string, email: string, message: string, meetingDate?: string, meetingTime?: string) => void;
+  onCancel: () => void;
+}
+
+function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: '',
+    meetingDate: '',
+    meetingTime: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTimeSlots, setShowTimeSlots] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+
+  // Generate available time slots for the selected date
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour <= 17; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(timeString);
+      }
+    }
+    return slots;
+  };
+
+  // Check availability for selected date
+  const checkAvailability = async (date: string) => {
+    if (!date) return;
+    
+    setCheckingAvailability(true);
+    console.log('🔍 Checking availability for date:', date);
+    
+    try {
+      const slots = generateTimeSlots();
+      console.log('📅 Generated time slots:', slots);
+      const availableSlots = [];
+      
+      // Check each time slot for availability
+      for (const time of slots) {
+        try {
+          const response = await fetch('/api/calendar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'checkAvailability',
+              date,
+              time,
+              duration: 30
+            })
+          });
+          
+          const result = await response.json();
+          console.log(`⏰ Checking ${time}:`, result);
+          
+          if (result.success && result.isAvailable) {
+            availableSlots.push(time);
+          }
+        } catch (slotError) {
+          console.error(`Error checking slot ${time}:`, slotError);
+          // Add slot anyway if API fails for individual slot
+          availableSlots.push(time);
+        }
+      }
+      
+      console.log('✅ Available slots:', availableSlots);
+      setAvailableSlots(availableSlots);
+      setShowTimeSlots(true);
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      // Fallback to showing all slots if API fails
+      const fallbackSlots = generateTimeSlots();
+      console.log('🔄 Using fallback slots:', fallbackSlots);
+      setAvailableSlots(fallbackSlots);
+      setShowTimeSlots(true);
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
+
+  const handleDateChange = (date: string) => {
+    console.log('📅 Date changed to:', date);
+    setFormData(prev => ({ ...prev, meetingDate: date, meetingTime: '' }));
+    setShowTimeSlots(false);
+    if (date) {
+      // Show time slots immediately for testing
+      const testSlots = generateTimeSlots();
+      console.log('🧪 Showing test slots immediately:', testSlots);
+      setAvailableSlots(testSlots);
+      setShowTimeSlots(true);
+      
+      // Then check real availability
+      checkAvailability(date);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email) return;
+    
+    setIsSubmitting(true);
+    await onSubmit(
+      formData.name, 
+      formData.email, 
+      formData.message,
+      formData.meetingDate || undefined,
+      formData.meetingTime || undefined
+    );
+    setIsSubmitting(false);
+  };
+
+  // Get tomorrow's date as minimum selectable date
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split('T')[0];
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="space-y-2">
+        <Input
+          type="text"
+          placeholder="Your name"
+          value={formData.name}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          className="bg-black/50 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
+          required
+        />
+        <Input
+          type="email"
+          placeholder="Your email"
+          value={formData.email}
+          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+          className="bg-black/50 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
+          required
+        />
+        <Input
+          type="text"
+          placeholder="Tell us about your project (optional)"
+          value={formData.message}
+          onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+          className="bg-black/50 border-gray-600 text-white placeholder-gray-400 focus:border-orange-500"
+        />
+        
+        {/* Meeting Date Selection */}
+        <div className="space-y-2">
+          <label className="text-xs text-gray-300">Preferred meeting date (optional)</label>
+          <Input
+            type="date"
+            value={formData.meetingDate}
+            onChange={(e) => handleDateChange(e.target.value)}
+            min={minDate}
+            className="bg-black/50 border-gray-600 text-white focus:border-orange-500"
+          />
+        </div>
+
+        {/* Time Slot Selection */}
+        {showTimeSlots && (
+          <div className="space-y-2">
+            <label className="text-xs text-gray-300">
+              Available time slots ({availableSlots.length} slots)
+            </label>
+            {checkingAvailability ? (
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Checking availability...
+              </div>
+            ) : availableSlots.length > 0 ? (
+              <div className="grid grid-cols-3 gap-1 max-h-24 overflow-y-auto">
+                {availableSlots.map((time) => (
+                  <button
+                    key={time}
+                    type="button"
+                    onClick={() => {
+                      console.log('⏰ Time slot selected:', time);
+                      setFormData(prev => ({ ...prev, meetingTime: time }));
+                    }}
+                    className={`text-xs p-1 rounded border ${
+                      formData.meetingTime === time
+                        ? 'bg-orange-600 border-orange-500 text-white'
+                        : 'bg-black/30 border-gray-600 text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs text-gray-400">
+                No available time slots for this date. Please try another date.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      
+      <div className="flex gap-2">
+        <Button
+          type="submit"
+          disabled={isSubmitting || !formData.name || !formData.email}
+          className="flex-1 bg-orange-600 hover:bg-orange-700 text-white text-xs h-8"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              {formData.meetingDate && formData.meetingTime ? 'Booking...' : 'Submitting...'}
+            </>
+          ) : (
+            <>
+              <Calendar className="h-3 w-3 mr-1" />
+              {formData.meetingDate && formData.meetingTime ? 'Book Meeting' : 'Submit'}
+            </>
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="bg-black/50 border-gray-600 text-gray-300 hover:bg-gray-800 text-xs h-8"
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export default function ElevenLabsVoiceChatbot() {
-  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState('');
+  
+  // Initialize RAG system
+  const [ragSystem] = useState(() => new CognivexRAGSystem());
   
   // Voice Agent states
   const [voiceAgent, setVoiceAgent] = useState<VoiceAgentState>({
@@ -89,6 +321,43 @@ export default function ElevenLabsVoiceChatbot() {
     isActive: false,
     userInfo: { name: '', email: '' }
   });
+
+  // User profile and memory state
+  const [userProfile, setUserProfile] = useState<{
+    name?: string;
+    email?: string;
+    interests: string[];
+    industry?: string;
+    budget?: string;
+    timeline?: string;
+    conversationCount: number;
+    lastInteraction: string;
+    preferences: {
+      communicationStyle: 'formal' | 'casual';
+      detailLevel: 'brief' | 'detailed';
+      focusAreas: string[];
+    };
+  }>({
+    interests: [],
+    conversationCount: 0,
+    lastInteraction: new Date().toISOString(),
+    preferences: {
+      communicationStyle: 'casual',
+      detailLevel: 'detailed',
+      focusAreas: []
+    }
+  });
+
+  // Case study browser state
+  const [caseStudyBrowser, setCaseStudyBrowser] = useState<{
+    isOpen: boolean;
+    selectedProject: string | null;
+    currentUrl: string | null;
+  }>({
+    isOpen: false,
+    selectedProject: null,
+    currentUrl: null
+  });
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -104,6 +373,92 @@ export default function ElevenLabsVoiceChatbot() {
   const ELEVENLABS_API_KEY = 'sk_0319ae36d08c569341e843b46f2cb8838fb45e93373c2db3';
   const ELEVENLABS_API_URL = 'https://api.elevenlabs.io/v1';
 
+  // Case study data organized by categories
+  const caseStudyCategories = [
+    {
+      title: 'Web Development',
+      projects: [
+        {
+          id: 'aniefiok',
+          name: 'Aniefiok',
+          description: 'Music Portfolio with Admin Panel',
+          industry: 'Creative',
+          url: 'https://aniefoik.vercel.app/',
+          type: 'website',
+          features: ['Admin Panel Integration', 'Live Performance Updates', 'Music Streaming']
+        },
+        {
+          id: 'devika',
+          name: 'Devika Sinha',
+          description: 'Fine Art Photography with Store',
+          industry: 'Art & Photography',
+          url: 'https://www.devikasinha.com/',
+          type: 'website',
+          features: ['Picture Store', 'CMS Integration', 'E-commerce']
+        },
+        {
+          id: 'dimitra',
+          name: 'Dimitra Polic',
+          description: 'Creative Photography Portfolio',
+          industry: 'Photography',
+          url: 'https://www.dimitrapolic.com/',
+          type: 'external',
+          features: ['CMS Integration', 'Portfolio Management', 'Responsive Design']
+        },
+        {
+          id: 'steffff',
+          name: 'Steffff',
+          description: 'Photography Portfolio with Store',
+          industry: 'Photography',
+          url: 'https://www.steffff.com/',
+          type: 'website',
+          features: ['Picture Store', 'Portfolio Gallery', 'Print Sales']
+        },
+        {
+          id: 'ashwith',
+          name: 'Ashwith S Pai',
+          description: 'Documentary Photography Portfolio',
+          industry: 'Documentary Photography',
+          url: 'https://www.ashwithspai.com/',
+          type: 'external',
+          features: ['Gallery System', 'Motorsport Photography', 'Portfolio Showcase']
+        },
+        {
+          id: 'narmadha',
+          name: 'Narmadha',
+          description: 'Story Spark - AI Story Creation',
+          industry: 'AI Content Creation',
+          url: 'https://studio--story-spark-a2jdn.us-central1.hosted.app/',
+          type: 'website',
+          features: ['AI Story Generation', 'Story Book Publishing', 'Content Automation']
+        }
+      ]
+    },
+    {
+      title: 'Data Analysis',
+      projects: [
+        {
+          id: 'whatsthestory',
+          name: 'What\'s The Story',
+          description: 'Startup Journey Analysis & No-Code Platform',
+          industry: 'Business Intelligence',
+          url: '/wats.pdf',
+          type: 'pdf',
+          features: ['One Year Analysis', 'Startup Metrics', 'No-Code Platform Development']
+        },
+        {
+          id: 'french-market-analysis',
+          name: 'French Market Analysis',
+          description: 'Data Analysis using Snowflake & Metabase',
+          industry: 'Market Research',
+          url: '/French Market Analysis.mov',
+          type: 'video',
+          features: ['Snowflake Analytics', 'Metabase Visualization', 'French Market Insights']
+        }
+      ]
+    }
+  ];
+
   // Initialize voice recognition and ElevenLabs
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -117,7 +472,7 @@ export default function ElevenLabsVoiceChatbot() {
         
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = language === 'en' ? 'en-US' : 'fr-FR';
+        recognitionRef.current.lang = 'en-US';
         
         recognitionRef.current.onstart = () => {
           console.log('🎤 Speech recognition started');
@@ -186,7 +541,7 @@ export default function ElevenLabsVoiceChatbot() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [language]);
+  }, []);
 
   // Load available voices from ElevenLabs
   const loadElevenLabsVoices = async () => {
@@ -402,6 +757,115 @@ export default function ElevenLabsVoiceChatbot() {
     return [];
   };
 
+  // User profile storage functions
+  const saveUserProfile = (profile: typeof userProfile) => {
+    try {
+      localStorage.setItem('chatbot_user_profile', JSON.stringify(profile));
+    } catch (error) {
+      console.error('Failed to save user profile:', error);
+    }
+  };
+
+  const loadUserProfile = (): typeof userProfile => {
+    try {
+      const stored = localStorage.getItem('chatbot_user_profile');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error('Failed to load user profile:', error);
+    }
+    return {
+      interests: [],
+      conversationCount: 0,
+      lastInteraction: new Date().toISOString(),
+      preferences: {
+        communicationStyle: 'casual',
+        detailLevel: 'detailed',
+        focusAreas: []
+      }
+    };
+  };
+
+  // Update user profile based on conversation
+  const updateUserProfile = (message: string, conversationHistory: ChatMessage[]) => {
+    setUserProfile(prev => {
+      const updated = { ...prev };
+      
+      // Extract name and email from messages
+      const nameMatch = message.match(/(?:my name is|i'm|i am)\s+([a-zA-Z\s]+)/i);
+      if (nameMatch && !updated.name) {
+        updated.name = nameMatch[1].trim();
+      }
+      
+      const emailMatch = message.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+      if (emailMatch && !updated.email) {
+        updated.email = emailMatch[1];
+      }
+      
+      // Extract interests
+      const interestKeywords = ['data analysis', 'chatbot', 'website', 'ai', 'analytics', 'automation'];
+      interestKeywords.forEach(keyword => {
+        if (message.toLowerCase().includes(keyword) && !updated.interests.includes(keyword)) {
+          updated.interests.push(keyword);
+        }
+      });
+      
+      // Extract industry
+      const industryKeywords = ['retail', 'healthcare', 'finance', 'education', 'manufacturing', 'ecommerce'];
+      industryKeywords.forEach(industry => {
+        if (message.toLowerCase().includes(industry) && !updated.industry) {
+          updated.industry = industry;
+        }
+      });
+      
+      // Update conversation count and last interaction
+      updated.conversationCount += 1;
+      updated.lastInteraction = new Date().toISOString();
+      
+      // Save to localStorage
+      saveUserProfile(updated);
+      
+      return updated;
+    });
+  };
+
+  // Case study browser functions
+  const openCaseStudyBrowser = () => {
+    setCaseStudyBrowser(prev => ({
+      ...prev,
+      isOpen: true,
+      selectedProject: null,
+      currentUrl: null
+    }));
+  };
+
+  const closeCaseStudyBrowser = () => {
+    setCaseStudyBrowser(prev => ({
+      ...prev,
+      isOpen: false,
+      selectedProject: null,
+      currentUrl: null
+    }));
+  };
+
+  const selectCaseStudy = (projectId: string) => {
+    // Find project across all categories
+    let project = null;
+    for (const category of caseStudyCategories) {
+      project = category.projects.find(p => p.id === projectId);
+      if (project) break;
+    }
+    
+    if (project) {
+      setCaseStudyBrowser(prev => ({
+        ...prev,
+        selectedProject: projectId,
+        currentUrl: project.url
+      }));
+    }
+  };
+
   // Initialize EmailJS
   useEffect(() => {
     try {
@@ -421,13 +885,16 @@ export default function ElevenLabsVoiceChatbot() {
   useEffect(() => {
     if (isOpen && !isInitialized) {
       const storedMessages = loadMessagesFromStorage(sessionId);
+      const storedProfile = loadUserProfile();
+      
+      setUserProfile(storedProfile);
       
       if (storedMessages.length > 0) {
         setMessages(storedMessages);
       } else {
-        const greetingMessage = language === 'en'
-          ? "Hello! I'm Zephyr, your AI voice agent powered by ElevenLabs. I can help you with appointments, inquiries, and more. Click 'Voice Agent' to start a natural conversation!"
-          : "Bonjour ! Je suis Zephyr, votre agent vocal IA alimenté par ElevenLabs. Je peux vous aider avec les rendez-vous, les demandes et plus encore. Cliquez sur 'Agent Vocal' pour commencer une conversation naturelle !";
+        const greetingMessage = storedProfile.name 
+          ? `Hello ${storedProfile.name}! Welcome back to CognivexAI. How can I help you today?`
+          : "Hello! I'm Zephyr, your AI assistant from CognivexAI. I'm here to help you learn about our AI solutions, answer your questions, and assist with scheduling consultations. How can I help you today?";
         
         setMessages([
           { role: 'model', content: greetingMessage }
@@ -435,7 +902,7 @@ export default function ElevenLabsVoiceChatbot() {
       }
       setIsInitialized(true);
     }
-  }, [isOpen, isInitialized, sessionId, language]);
+  }, [isOpen, isInitialized, sessionId]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -488,12 +955,8 @@ export default function ElevenLabsVoiceChatbot() {
     setIsLoading(true);
     
     try {
-      // Check for lead information (name, email) first
-      const leadInfo = extractLeadInfo(message);
-      if (leadInfo.name || leadInfo.email) {
-        await handleLeadCapture(leadInfo, currentMessages);
-        return;
-      }
+      // Update user profile based on the message
+      updateUserProfile(message, currentMessages);
       
       // Check for booking intent
       const bookingKeywords = ['schedule', 'book', 'appointment', 'meeting', 'call', 'consultation', 'set up', 'arrange', 'reserve', 'slot', 'time', 'calendar'];
@@ -504,8 +967,8 @@ export default function ElevenLabsVoiceChatbot() {
       if (hasBookingIntent) {
         await handleBookingIntent(message, currentMessages);
       } else {
-        // Handle general conversation
-        const response = await handleGeneralConversation(message);
+        // Handle general conversation with conversation history
+        const response = await handleGeneralConversation(message, currentMessages);
         setMessages([...currentMessages, { role: 'model', content: response }]);
         
         // Speak the response if voice agent is active
@@ -518,7 +981,7 @@ export default function ElevenLabsVoiceChatbot() {
       
     } catch (error) {
       console.error('Error processing message:', error);
-      const errorMessage = language === 'en' 
+      const errorMessage = true 
         ? "I'm sorry, I encountered an error processing your request. Please try again."
         : "Je suis désolé, j'ai rencontré une erreur en traitant votre demande. Veuillez réessayer.";
       
@@ -532,361 +995,246 @@ export default function ElevenLabsVoiceChatbot() {
     }
   };
 
-  // Extract calendar booking information from message with enhanced options
-  const extractCalendarInfo = (message: string) => {
-    const lowerMessage = message.toLowerCase();
-    
-    // Date patterns
-    const todayMatch = lowerMessage.match(/(?:today|tonight|this evening)/);
-    const tomorrowMatch = lowerMessage.match(/(?:tomorrow|tmr|tmrw)/);
-    const nextWeekMatch = lowerMessage.match(/(?:next week|following week)/);
-    const dayMatch = lowerMessage.match(/(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)/i);
-    const nextDayMatch = lowerMessage.match(/(?:next monday|next tuesday|next wednesday|next thursday|next friday|next saturday|next sunday)/i);
-    const dateMatch = lowerMessage.match(/(\d{1,2})\/(\d{1,2})|(\d{1,2})-(\d{1,2})/);
-    
-    // Time patterns
-    const timeMatch = lowerMessage.match(/(\d{1,2}):?(\d{2})?\s*(am|pm|a\.m\.|p\.m\.)/i);
-    const hourMatch = lowerMessage.match(/(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)/i);
-    
-    // Duration patterns with more options
-    const durationMatch = lowerMessage.match(/(\d+)\s*(hour|hr|minute|min)/i);
-    const quickMatch = lowerMessage.match(/(?:quick|brief|short)/);
-    const longMatch = lowerMessage.match(/(?:long|extended|comprehensive)/);
-    
-    // Meeting type patterns
-    const demoMatch = lowerMessage.match(/(?:demo|demonstration|showcase)/);
-    const technicalMatch = lowerMessage.match(/(?:technical|tech|development)/);
-    const strategyMatch = lowerMessage.match(/(?:strategy|planning|roadmap)/);
-    const discoveryMatch = lowerMessage.match(/(?:discovery|assessment|evaluation)/);
-    const followUpMatch = lowerMessage.match(/(?:follow.?up|followup|check.?in)/);
-    
-    let date = new Date();
-    let time = '14:00'; // Default 2 PM
-    let duration = 60; // Default 1 hour
-    let meetingType = 'consultation';
-    
-    // Set date with enhanced logic
-    if (tomorrowMatch) {
-      date.setDate(date.getDate() + 1);
-    } else if (nextWeekMatch) {
-      date.setDate(date.getDate() + 7);
-    } else if (nextDayMatch) {
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const targetDay = dayNames.indexOf(nextDayMatch[0].split(' ')[1]);
-      const currentDay = date.getDay();
-      const daysToAdd = (targetDay - currentDay + 7) % 7 + 7; // Add extra week
-      date.setDate(date.getDate() + daysToAdd);
-    } else if (dayMatch) {
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const targetDay = dayNames.indexOf(dayMatch[0].toLowerCase());
-      const currentDay = date.getDay();
-      const daysToAdd = (targetDay - currentDay + 7) % 7;
-      date.setDate(date.getDate() + daysToAdd);
-    } else if (dateMatch) {
-      const month = parseInt(dateMatch[1] || dateMatch[3]) - 1;
-      const day = parseInt(dateMatch[2] || dateMatch[4]);
-      date.setMonth(month);
-      date.setDate(day);
-    }
-    
-    // Set time
-    if (timeMatch) {
-      let hour = parseInt(timeMatch[1]);
-      const minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-      const period = timeMatch[3].toLowerCase();
-      
-      if (period.includes('pm') && hour !== 12) hour += 12;
-      if (period.includes('am') && hour === 12) hour = 0;
-      
-      time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-    } else if (hourMatch) {
-      let hour = parseInt(hourMatch[1]);
-      const period = hourMatch[2].toLowerCase();
-      
-      if (period.includes('pm') && hour !== 12) hour += 12;
-      if (period.includes('am') && hour === 12) hour = 0;
-      
-      time = `${hour.toString().padStart(2, '0')}:00`;
-    }
-    
-    // Set duration with smart defaults
-    if (durationMatch) {
-      const value = parseInt(durationMatch[1]);
-      const unit = durationMatch[2].toLowerCase();
-      if (unit.includes('hour') || unit.includes('hr')) {
-        duration = value * 60;
-      } else if (unit.includes('minute') || unit.includes('min')) {
-        duration = value;
-      }
-    } else if (quickMatch) {
-      duration = 30;
-    } else if (longMatch) {
-      duration = 120;
-    }
-    
-    // Set meeting type
-    if (demoMatch) {
-      meetingType = 'demo';
-    } else if (technicalMatch) {
-      meetingType = 'technical review';
-    } else if (strategyMatch) {
-      meetingType = 'strategy session';
-    } else if (discoveryMatch) {
-      meetingType = 'discovery call';
-    } else if (followUpMatch) {
-      meetingType = 'follow-up';
-    }
-    
-    return { date, time, duration, meetingType };
-  };
-
-  // Handle calendar booking
-  const handleCalendarBooking = async (calendarInfo: { date: Date; time: string; duration: number }, userEmail: string, userName: string): Promise<string> => {
-    try {
-      const [hours, minutes] = calendarInfo.time.split(':').map(Number);
-      const startTime = new Date(calendarInfo.date);
-      startTime.setHours(hours, minutes, 0, 0);
-      
-      const endTime = new Date(startTime.getTime() + calendarInfo.duration * 60000);
-      
-      const bookingData = {
-        summary: `CognivexAI Consultation - ${userName}`,
-        description: `Consultation meeting with ${userName} (${userEmail})`,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
-        attendeeEmail: userEmail,
-        attendeeName: userName
-      };
-      
-      const response = await fetch('/api/calendar/book', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bookingData),
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        
-        return language === 'en'
-          ? `✅ Meeting booked successfully!\n\n📅 Date: ${startTime.toLocaleDateString()}\n⏰ Time: ${startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\n⏱️ Duration: ${calendarInfo.duration} minutes\n📧 Client Email: ${userEmail}\n\nYour meeting has been added to our calendar. We'll contact you at ${userEmail} to confirm the details. Looking forward to our consultation!`
-          : `✅ Réunion réservée avec succès !\n\n📅 Date : ${startTime.toLocaleDateString()}\n⏰ Heure : ${startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}\n⏱️ Durée : ${calendarInfo.duration} minutes\n📧 Email client : ${userEmail}\n\nVotre réunion a été ajoutée à notre calendrier. Nous vous contacterons à ${userEmail} pour confirmer les détails. J'ai hâte de notre consultation !`;
-      } else {
-        throw new Error('Failed to book meeting');
-      }
-    } catch (error) {
-      console.error('❌ Calendar booking error:', error);
-      return language === 'en'
-        ? "❌ Sorry, I couldn't book the meeting at the moment. Please try again or contact us directly."
-        : "❌ Désolé, je n'ai pas pu réserver la réunion pour le moment. Veuillez réessayer ou nous contacter directement.";
-    }
-  };
-
   // Handle booking intent
   const handleBookingIntent = async (message: string, currentMessages: ChatMessage[]) => {
-    const calendarInfo = extractCalendarInfo(message);
-    
-    // Look through ALL messages to find user info (not just current message)
-    let userEmail = '';
-    let userName = '';
-    
-    for (const msg of currentMessages) {
-      if (msg.role === 'user') {
-        // Extract email if not found yet
-        if (!userEmail) {
-          const emailMatch = msg.content.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
-          if (emailMatch) userEmail = emailMatch[0];
-        }
-        
-        // Extract name if not found yet
-        if (!userName) {
-          const nameMatch = msg.content.match(/(?:my name is|i'm|i am|call me)\s+([a-zA-Z\s]+)/i);
-          if (nameMatch) userName = nameMatch[1].trim();
-        }
-      }
-    }
-    
-    if (userEmail && userName) {
-      const response = await handleCalendarBooking(calendarInfo, userEmail, userName);
-      setMessages([...currentMessages, { role: 'model', content: response }]);
-      
-      if (voiceAgent.isActive) {
-        await speakWithElevenLabs(response);
-      }
-    } else {
-      const response = language === 'en'
-        ? "I'd love to help you book a meeting! First, please tell me:\n\n👤 Your name (e.g., 'My name is John')\n📧 Your email (e.g., 'john@example.com')\n\nThen I can schedule your consultation right away!"
-        : "J'aimerais vous aider à réserver une réunion ! D'abord, dites-moi :\n\n👤 Votre nom (ex : 'Je m'appelle Jean')\n📧 Votre email (ex : 'jean@exemple.com')\n\nEnsuite, je pourrai programmer votre consultation immédiatement !";
-      
-      setMessages([...currentMessages, { role: 'model', content: response }]);
-      
-      if (voiceAgent.isActive) {
-        await speakWithElevenLabs(response);
-      }
-    }
-  };
-
-  // Extract lead information from message with enhanced scoring
-  const extractLeadInfo = (message: string) => {
-    const nameMatch = message.match(/(?:my name is|i'm|i am|call me)\s+([a-zA-Z\s]+)/i);
-    const emailMatch = message.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
-    
-    // Enhanced lead scoring based on message content
-    let leadScore = 50; // Base score
-    let leadPriority = 'medium';
-    let leadNotes = [];
-    
-    const lowerMessage = message.toLowerCase();
-    
-    // Business indicators (higher score)
-    if (lowerMessage.includes('business') || lowerMessage.includes('company') || lowerMessage.includes('enterprise')) {
-      leadScore += 20;
-      leadNotes.push('Business/Enterprise lead');
-    }
-    
-    if (lowerMessage.includes('project') || lowerMessage.includes('development') || lowerMessage.includes('implementation')) {
-      leadScore += 15;
-      leadNotes.push('Project-focused lead');
-    }
-    
-    if (lowerMessage.includes('urgent') || lowerMessage.includes('asap') || lowerMessage.includes('immediate')) {
-      leadScore += 25;
-      leadPriority = 'high';
-      leadNotes.push('Urgent request');
-    }
-    
-    if (lowerMessage.includes('budget') || lowerMessage.includes('pricing') || lowerMessage.includes('cost')) {
-      leadScore += 10;
-      leadNotes.push('Budget-aware lead');
-    }
-    
-    if (lowerMessage.includes('consultation') || lowerMessage.includes('meeting') || lowerMessage.includes('call')) {
-      leadScore += 15;
-      leadNotes.push('Meeting-ready lead');
-    }
-    
-    // Industry indicators
-    if (lowerMessage.includes('ecommerce') || lowerMessage.includes('retail')) {
-      leadNotes.push('E-commerce/Retail industry');
-    } else if (lowerMessage.includes('healthcare') || lowerMessage.includes('medical')) {
-      leadNotes.push('Healthcare industry');
-    } else if (lowerMessage.includes('finance') || lowerMessage.includes('banking')) {
-      leadNotes.push('Finance/Banking industry');
-    } else if (lowerMessage.includes('manufacturing') || lowerMessage.includes('production')) {
-      leadNotes.push('Manufacturing industry');
-    }
-    
-    // Set priority based on score
-    if (leadScore >= 80) leadPriority = 'high';
-    else if (leadScore >= 60) leadPriority = 'medium';
-    else leadPriority = 'low';
-    
-    return {
-      name: nameMatch ? nameMatch[1].trim() : null,
-      email: emailMatch ? emailMatch[0] : null,
-      leadScore,
-      leadPriority,
-      leadNotes: leadNotes.join('; ')
-    };
-  };
-
-  // Handle lead capture
-  const handleLeadCapture = async (leadInfo: { name: string | null; email: string | null; leadScore?: number; leadPriority?: string; leadNotes?: string }, currentMessages: ChatMessage[]) => {
-    let response = '';
-    
-    if (leadInfo.name && leadInfo.email) {
-      // Both name and email provided
-      response = language === 'en'
-        ? `Great! I've captured your information:\n\n👤 Name: ${leadInfo.name}\n📧 Email: ${leadInfo.email}\n\nI'm saving this to our lead management system. How can I help you today?`
-        : `Parfait ! J'ai capturé vos informations :\n\n👤 Nom : ${leadInfo.name}\n📧 Email : ${leadInfo.email}\n\nJe sauvegarde cela dans notre système de gestion des prospects. Comment puis-je vous aider aujourd'hui ?`;
-      
-      // Save to Google Sheets with enhanced lead information
-      await saveLeadToGoogleSheets({
-        name: leadInfo.name,
-        email: leadInfo.email,
-        message: currentMessages[currentMessages.length - 1]?.content || 'Lead captured from chat',
-        timestamp: new Date().toISOString(),
-        sessionId: sessionId,
-        leadScore: leadInfo.leadScore || 75
-      });
-      
-    } else if (leadInfo.name) {
-      // Only name provided
-      response = language === 'en'
-        ? `Nice to meet you, ${leadInfo.name}! What's your email address so I can better assist you?`
-        : `Ravi de vous rencontrer, ${leadInfo.name} ! Quel est votre adresse email pour que je puisse mieux vous aider ?`;
-    } else if (leadInfo.email) {
-      // Only email provided
-      response = language === 'en'
-        ? `Thanks for providing your email: ${leadInfo.email}. What's your name?`
-        : `Merci d'avoir fourni votre email : ${leadInfo.email}. Quel est votre nom ?`;
-    }
+    const response = true
+      ? "I'd be happy to help you schedule a consultation! I can detect that you want to book an appointment. Let me open our scheduling system for you."
+      : "Je serais ravi de vous aider à programmer une consultation ! Je peux détecter que vous voulez réserver un rendez-vous. Laissez-moi ouvrir notre système de planification pour vous.";
     
     setMessages([...currentMessages, { role: 'model', content: response }]);
     
-    // Speak the response if voice agent is active
     if (voiceAgent.isActive) {
       await speakWithElevenLabs(response);
     }
+    
+    setSchedulingState(prev => ({
+      ...prev,
+      isActive: true
+    }));
   };
 
-  // Google Sheets integration for lead storage
-  const saveLeadToGoogleSheets = async (leadData: {
-    name: string;
-    email: string;
-    message: string;
-    timestamp: string;
-    sessionId: string;
-    leadScore: number;
-  }) => {
+  // Handle lead submission to Google Sheets and optional meeting booking
+  const handleLeadSubmission = async (name: string, email: string, message: string, meetingDate?: string, meetingTime?: string) => {
     try {
-      const response = await fetch('/api/sheets/leads', {
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // First, save lead to Google Sheets
+      const sheetsResponse = await fetch('/api/sheets/leads', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(leadData),
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+          sessionId,
+          leadScore: 75 // Default lead score
+        }),
       });
-      
-      if (response.ok) {
-        console.log('✅ Lead saved to Google Sheets');
-        return true;
-      } else {
-        console.error('❌ Failed to save lead to Google Sheets');
-        return false;
+
+      if (!sheetsResponse.ok) {
+        throw new Error('Failed to submit lead to Google Sheets');
       }
+
+      let successMessage = "Thank you! I've received your information and will get back to you within 24 hours to schedule your consultation.";
+      let meetingDetails = null;
+
+      // Send lead notification email even if no meeting is booked
+      if (!meetingDate || !meetingTime) {
+        try {
+          const emailResponse = await fetch('/api/email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userName: name,
+              userEmail: email,
+              ownerEmail: 'snazzy.mugi@gmail.com',
+              meetingDetails: `Lead inquiry: ${message || 'No specific message provided'}`
+            }),
+          });
+
+          if (emailResponse.ok) {
+            console.log('✅ Lead notification email sent successfully');
+          } else {
+            console.error('❌ Lead notification email failed');
+          }
+        } catch (emailError) {
+          console.error('❌ Error sending lead notification email:', emailError);
+        }
+      }
+
+      // If meeting date and time are provided, create calendar event
+      if (meetingDate && meetingTime) {
+        try {
+          const startDateTime = new Date(`${meetingDate}T${meetingTime}:00`);
+          const endDateTime = new Date(startDateTime.getTime() + 30 * 60000); // 30 minutes duration
+
+          const calendarResponse = await fetch('/api/calendar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'createEvent',
+              eventData: {
+                summary: 'CognivexAI Consultation',
+                description: `Consultation meeting with ${name}\n\nEmail: ${email}\nProject: ${message || 'Not specified'}\n\nMeeting created by CognivexAI Chatbot`,
+                start: {
+                  dateTime: startDateTime.toISOString(),
+                  timeZone: 'UTC'
+                },
+                end: {
+                  dateTime: endDateTime.toISOString(),
+                  timeZone: 'UTC'
+                }
+              }
+            }),
+          });
+
+          if (calendarResponse.ok) {
+            const calendarResult = await calendarResponse.json();
+            meetingDetails = {
+              date: meetingDate,
+              time: meetingTime,
+              meetingLink: calendarResult.meetingLink || 'Meeting link will be provided'
+            };
+            
+            // Send confirmation emails
+            try {
+              const emailResponse = await fetch('/api/email', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  userName: name,
+                  userEmail: email,
+                  ownerEmail: 'snazzy.mugi@gmail.com',
+                  meetingDetails: meetingDetails
+                }),
+              });
+
+              if (emailResponse.ok) {
+                console.log('✅ Confirmation emails sent successfully');
+                successMessage = `Perfect! I've scheduled your consultation for ${meetingDate} at ${meetingTime}. You'll receive a confirmation email with the meeting link shortly.`;
+              } else {
+                console.error('❌ Email sending failed');
+                successMessage = `Perfect! I've scheduled your consultation for ${meetingDate} at ${meetingTime}. Please check your email for the meeting link.`;
+              }
+            } catch (emailError) {
+              console.error('❌ Error sending emails:', emailError);
+              successMessage = `Perfect! I've scheduled your consultation for ${meetingDate} at ${meetingTime}. Please check your email for the meeting link.`;
+            }
+          } else {
+            console.error('Calendar booking failed, but lead was saved');
+            successMessage = "Thank you! I've received your information. I'll get back to you within 24 hours to confirm the meeting time.";
+          }
+        } catch (calendarError) {
+          console.error('Error creating calendar event:', calendarError);
+          successMessage = "Thank you! I've received your information. I'll get back to you within 24 hours to confirm the meeting time.";
+        }
+      }
+
+      setMessages(prev => [...prev, { role: 'model', content: successMessage }]);
+      
+      if (voiceAgent.isActive) {
+        await speakWithElevenLabs(successMessage);
+      }
+      
+      // Reset scheduling state
+    setSchedulingState(prev => ({
+      ...prev,
+        isActive: false,
+        userInfo: { name: '', email: '' }
+      }));
+
     } catch (error) {
-      console.error('❌ Error saving lead:', error);
-      return false;
+      console.error('Error submitting lead:', error);
+      const errorMessage = "I apologize, but there was an issue submitting your information. Please try again or contact us directly at snazzy.mugi@gmail.com";
+      setMessages(prev => [...prev, { role: 'model', content: errorMessage }]);
+      
+      if (voiceAgent.isActive) {
+        await speakWithElevenLabs(errorMessage);
+      }
     }
   };
 
-  // Handle general conversation
-  const handleGeneralConversation = async (message: string): Promise<string> => {
+  // Handle general conversation with RAG system
+  const handleGeneralConversation = async (message: string, conversationHistory?: ChatMessage[]): Promise<string> => {
     const lowerMessage = message.toLowerCase();
     
+    // Handle greetings
     if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-      return language === 'en' 
-        ? "Hello! How can I help you today? You can ask me about our services, schedule a consultation, or just chat naturally."
-        : "Bonjour ! Comment puis-je vous aider aujourd'hui ? Vous pouvez me demander nos services, programmer une consultation ou simplement discuter naturellement.";
+      return "Hello! I'm Zephyr, your AI assistant from CognivexAI. I'm here to help you learn about our AI solutions, answer your questions, and assist with scheduling consultations. How can I help you today?";
     }
     
+    // Handle case study requests
+    if (lowerMessage.includes('case study') || lowerMessage.includes('case studies') || lowerMessage.includes('show me your') || lowerMessage.includes('projects') || lowerMessage.includes('portfolio') || lowerMessage.includes('data analysis') || lowerMessage.includes('startup journey') || lowerMessage.includes('automation') || lowerMessage.includes('ai solutions') || lowerMessage.includes('admin panel') || lowerMessage.includes('cms') || lowerMessage.includes('story spark')) {
+      openCaseStudyBrowser();
+      return "Here are our categorized projects! Explore our portfolio organized by Web Development, AI & Automation, and Data Analysis. Each project showcases our expertise in creating innovative solutions with detailed features and capabilities.";
+    }
+    
+    // Use RAG system for intelligent responses with conversation context
+    try {
+      // Search the knowledge base with conversation history
+      const searchResults = ragSystem.search(message, conversationHistory);
+      
+      if (searchResults.length > 0) {
+        // Generate comprehensive response using RAG with conversation context
+        const ragResponse = ragSystem.generateResponse(message, searchResults, conversationHistory);
+        
+        // Format the response with sources and actions
+        let response = ragResponse.answer;
+        
+        // Add suggested actions if available
+        if (ragResponse.suggestedActions && ragResponse.suggestedActions.length > 0) {
+          response += "\n\n💡 I can also help you with:";
+          ragResponse.suggestedActions.slice(0, 3).forEach(action => {
+            response += `\n• ${action}`;
+          });
+        }
+        
+        // Add confidence indicator for transparency
+        if (ragResponse.confidence > 0.7) {
+          response += `\n\n✅ Confidence: ${Math.round(ragResponse.confidence * 100)}%`;
+        }
+        
+        return response;
+      }
+    } catch (error) {
+      console.error('RAG system error:', error);
+    }
+    
+    // Fallback responses for common queries
     if (lowerMessage.includes('services') || lowerMessage.includes('what do you do') || lowerMessage.includes('cognivex')) {
-      return language === 'en'
-        ? "CognivexAI - Premier AI Solutions Partner\n\n📊 Data Analysis\n   • Automated insights & reporting\n   • Business intelligence dashboards\n   • Predictive analytics\n\n🤖 AI Chatbots\n   • 24/7 intelligent support\n   • Lead qualification & booking\n   • CRM integration\n\n🌐 AI-Enhanced Websites\n   • Modern responsive design\n   • AI personalization\n   • Chatbot integration\n\n💎 Success Metrics\n   • 40% cost reduction\n   • 3x faster decisions\n   • 95% accuracy\n\nWhich service interests you most?"
-        : "CognivexAI - Partenaire de Solutions IA de Premier Plan\n\n📊 Analyse de Données\n   • Insights et rapports automatisés\n   • Tableaux de bord d'intelligence d'affaires\n   • Analytique prédictive\n\n🤖 Chatbots IA\n   • Support intelligent 24h/24\n   • Qualification des prospects et réservation\n   • Intégration CRM\n\n🌐 Sites Web Améliorés par l'IA\n   • Design responsive moderne\n   • Personnalisation IA\n   • Intégration chatbot\n\n💎 Métriques de Succès\n   • 40% de réduction des coûts\n   • Décisions 3x plus rapides\n   • 95% de précision\n\nQuel service vous intéresse le plus ?";
+      return "CognivexAI - Premier AI Solutions Partner\n\n📊 Data Analysis\n   • Automated insights & reporting\n   • Business intelligence dashboards\n   • Predictive analytics\n\n🤖 AI Chatbots\n   • 24/7 intelligent support\n   • Lead qualification & booking\n   • CRM integration\n\n🌐 AI-Enhanced Websites\n   • Modern responsive design\n   • AI personalization\n   • Chatbot integration\n\n💎 Success Metrics\n   • 40% cost reduction\n   • 3x faster decisions\n   • 95% accuracy\n\nWhich service interests you most?";
     }
     
     if (lowerMessage.includes('contact') || lowerMessage.includes('email') || lowerMessage.includes('phone')) {
-      return language === 'en'
-        ? "You can reach us at snazzy.mugi@gmail.com or schedule a call through me. Would you like me to help you book a consultation?"
-        : "Vous pouvez nous joindre à snazzy.mugi@gmail.com ou programmer un appel par mon intermédiaire. Souhaitez-vous que je vous aider à réserver une consultation ?";
+      return "You can reach us at snazzy.mugi@gmail.com or schedule a call through me. Would you like me to help you book a consultation?";
     }
     
-    return language === 'en'
-      ? "That's interesting! I'd be happy to help you with that. You can ask me about our services, schedule a consultation, or just continue our conversation naturally."
-      : "C'est intéressant ! Je serais ravi de vous aider avec cela. Vous pouvez me demander nos services, programmer une consultation ou simplement continuer notre conversation naturellement.";
+    if (lowerMessage.includes('pricing') || lowerMessage.includes('cost') || lowerMessage.includes('price')) {
+      return "For pricing information, please contact us directly. We provide personalized quotes based on your specific needs. Would you like me to help you schedule a consultation?";
+    }
+    
+    if (lowerMessage.includes('team') || lowerMessage.includes('expert') || lowerMessage.includes('experience')) {
+      return "Our team consists of 25-50 highly skilled professionals with 5-15 years of average experience. We have experts in Machine Learning, Data Science, Full-Stack Development, DevOps, and AI Consulting. Our team holds certifications from AWS, Google Cloud, Microsoft Azure, and other leading technology providers. We're located in San Francisco, New York, Austin, and have remote team members worldwide.";
+    }
+    
+    if (lowerMessage.includes('technology') || lowerMessage.includes('tech') || lowerMessage.includes('stack')) {
+      return "We use cutting-edge technologies including:\n\n🤖 AI/ML: TensorFlow, PyTorch, OpenAI GPT, Google BERT\n🌐 Frontend: React, Next.js, Vue.js, TypeScript\n⚙️ Backend: Node.js, Python, Django, FastAPI\n☁️ Cloud: AWS, Google Cloud, Azure, Docker, Kubernetes\n💾 Databases: PostgreSQL, MongoDB, Redis, Elasticsearch\n\nWould you like to know more about any specific technology or how we use it in our solutions?";
+    }
+    
+    if (lowerMessage.includes('project') || lowerMessage.includes('portfolio') || lowerMessage.includes('case study')) {
+      return "We've successfully completed 150+ AI projects across various industries. Some notable examples include:\n\n🏥 Healthcare: AI diagnostic system with 94% accuracy\n🛒 E-commerce: Personalization platform with 35% conversion increase\n💳 Finance: Risk assessment system with 98% fraud detection\n\nWould you like me to share more details about any specific project or industry?";
+    }
+    
+    // Default response for unrecognized queries
+    return "That's an interesting question! I'd be happy to help you with that. You can ask me about:\n\n• Our AI services and solutions\n• Pricing and packages\n• Technology stack and expertise\n• Our projects and portfolio\n• Team and company information\n• Scheduling a consultation\n\nWhat would you like to know more about?";
   };
 
   // Toggle voice agent mode with proper autoplay handling
@@ -901,7 +1249,7 @@ export default function ElevenLabsVoiceChatbot() {
       }
       
       // Speak welcome message after user interaction
-      const welcomeMessage = language === 'en'
+      const welcomeMessage = true
         ? "Voice Agent mode activated. I'm now listening and ready to help you with professional ElevenLabs voice. You can speak naturally and I'll respond with voice."
         : "Mode Agent Vocal activé. J'écoute maintenant et je suis prêt à vous aider avec la voix professionnelle ElevenLabs. Vous pouvez parler naturellement et je répondrai par la voix.";
       
@@ -946,6 +1294,7 @@ export default function ElevenLabsVoiceChatbot() {
       const newMessages: ChatMessage[] = [...messages, userMessage];
       setMessages(newMessages);
       saveMessagesToStorage(newMessages, sessionId);
+      setInput(''); // Clear the input after setting the message
       processMessage(action, newMessages);
     }, 100);
   };
@@ -963,7 +1312,7 @@ export default function ElevenLabsVoiceChatbot() {
               <p className="text-sm text-gray-200">{message.content}</p>
             </div>
             
-            {/* Quick Actions */}
+            {/* Dynamic Quick Actions */}
             {index === messages.length - 1 && !isLoading && (
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button
@@ -979,19 +1328,27 @@ export default function ElevenLabsVoiceChatbot() {
                   size="sm"
                   variant="outline"
                   className="text-xs h-7 px-3 bg-gray-800/50 border-gray-600 hover:bg-orange-500/20 hover:border-orange-500/50 text-gray-300 hover:text-orange-300"
-                  onClick={() => handleActionClick("What are your contact details?")}
+                  onClick={() => handleActionClick("Tell me about your services")}
                 >
-                  <Mail className="h-3 w-3 mr-1" />
-                  Contact Info
+                  <MessageCircle className="h-3 w-3 mr-1" />
+                  Services
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
                   className="text-xs h-7 px-3 bg-gray-800/50 border-gray-600 hover:bg-orange-500/20 hover:border-orange-500/50 text-gray-300 hover:text-orange-300"
-                  onClick={() => handleActionClick("Tell me about your services")}
+                  onClick={() => handleActionClick("What is your pricing?")}
                 >
-                  <MessageCircle className="h-3 w-3 mr-1" />
-                  Services
+                  Get Quote
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-xs h-7 px-3 bg-orange-500/30 border-orange-400/60 hover:bg-orange-500/40 hover:border-orange-400 text-orange-200 hover:text-orange-100 shadow-lg shadow-orange-500/20 animate-pulse"
+                  onClick={() => handleActionClick("Show me your projects")}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Our Projects
                 </Button>
               </div>
             )}
@@ -1035,11 +1392,14 @@ export default function ElevenLabsVoiceChatbot() {
         
         {/* Simple message bubble above the chatbot icon */}
         {!isOpen && (
-          <div className="absolute bottom-12 md:bottom-20 right-0 bg-black/90 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1.5 md:py-2 border border-gray-700 shadow-lg animate-in slide-in-from-bottom-2 duration-300">
+          <div 
+            onClick={() => setIsOpen(!isOpen)}
+            className="absolute bottom-12 md:bottom-20 right-0 bg-black/90 backdrop-blur-sm rounded-lg px-2 md:px-3 py-1.5 md:py-2 border-2 border-orange-400/60 shadow-lg animate-in slide-in-from-bottom-2 duration-300 cursor-pointer hover:bg-black/95 hover:border-orange-400/80 transition-all duration-200"
+          >
             <p className="text-white text-xs md:text-sm font-medium whitespace-nowrap">
-              {t('chatbot.greeting')}
+              Zephyr Here!
             </p>
-            <div className="absolute top-full right-3 md:right-4 w-2 h-2 bg-black/90 border-r border-b border-gray-700 transform rotate-45"></div>
+            <div className="absolute top-full right-3 md:right-4 w-2 h-2 bg-black/90 border-r-2 border-b-2 border-orange-400/60 transform rotate-45"></div>
           </div>
         )}
         
@@ -1062,26 +1422,13 @@ export default function ElevenLabsVoiceChatbot() {
               </Avatar>
               <div>
                 <CardTitle className="font-headline text-base text-white">Zephyr AI</CardTitle>
-                <p className="text-xs text-orange-300">ElevenLabs Powered</p>
+                <p className="text-xs text-orange-300">CognivexAI Powered</p>
               </div>
             </div>
             
-            {/* Voice Agent Controls */}
+            {/* Voice Agent Controls - Hidden for now */}
             <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleVoiceAgent}
-                className={`h-8 w-8 transition-all duration-300 ${
-                  voiceAgent.isActive 
-                    ? 'text-orange-400 bg-orange-500/20 border border-orange-500/50 animate-pulse' 
-                    : 'text-gray-400 hover:text-orange-400 hover:bg-orange-500/20'
-                }`}
-                title={voiceAgent.isActive ? 'Voice Agent Active' : 'Activate Voice Agent'}
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
-              
+              {/* Voice button hidden for now */}
               {voiceAgent.isActive && (
                 <Button
                   variant="ghost"
@@ -1137,9 +1484,27 @@ export default function ElevenLabsVoiceChatbot() {
                   <div className="rounded-lg px-3 py-2 bg-black/80 backdrop-blur-sm border border-gray-700/50">
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin text-orange-400" />
-                      <span className="text-sm text-gray-300">{t('chatbot.thinking')}</span>
+                      <span className="text-sm text-gray-300">Thinking...</span>
                     </div>
                   </div>
+                </div>
+              )}
+              
+              {/* Booking Form */}
+              {schedulingState.isActive && (
+                <div className="bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-500/30 rounded-lg p-4 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="h-5 w-5 text-orange-400" />
+                    <h3 className="text-sm font-semibold text-orange-300">Schedule Consultation</h3>
+                  </div>
+                  <p className="text-xs text-gray-300 mb-4">
+                    Please provide your details and I'll get back to you within 24 hours to schedule your consultation.
+                  </p>
+                  
+                  <BookingForm 
+                    onSubmit={handleLeadSubmission}
+                    onCancel={() => setSchedulingState(prev => ({ ...prev, isActive: false }))}
+                  />
                 </div>
               )}
             </div>
@@ -1152,7 +1517,7 @@ export default function ElevenLabsVoiceChatbot() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={voiceAgent.isActive ? "Type or speak naturally..." : "Type your message..."}
+                placeholder="Type your message here..."
                 autoComplete="off"
                 disabled={isLoading}
                 className="h-10 text-sm bg-black/80 backdrop-blur-sm border border-gray-600 focus:border-orange-500/50 focus:ring-orange-500/20 text-white placeholder-gray-400"
@@ -1164,11 +1529,173 @@ export default function ElevenLabsVoiceChatbot() {
                 className="h-10 w-10 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 border border-orange-400/30"
               >
                 <Send className="h-4 w-4 text-white" />
-                <span className="sr-only">{t('chatbot.send')}</span>
+                <span className="sr-only">Send</span>
               </Button>
             </form>
           </CardFooter>
         </Card>
+      )}
+
+      {/* Case Study Browser */}
+      {caseStudyBrowser.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-2">
+          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-500/20 rounded-lg backdrop-blur-sm">
+                  <Monitor className="h-5 w-5 text-orange-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Our Projects</h2>
+                  <p className="text-xs text-gray-300">Explore our portfolio of innovative solutions</p>
+                </div>
+              </div>
+              <Button
+                onClick={closeCaseStudyBrowser}
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-white hover:bg-white/10 rounded-lg"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex-1 flex min-h-0">
+              {/* Project List */}
+              <div className="w-72 border-r border-white/10 p-3 overflow-y-auto">
+                <div className="space-y-3">
+                  {caseStudyCategories.map((category) => (
+                    <div key={category.title} className="space-y-2">
+                      <h3 className="text-xs font-semibold text-orange-400 uppercase tracking-wider">
+                        {category.title}
+                      </h3>
+                      <div className="space-y-1">
+                        {category.projects.map((project) => (
+                          <button
+                            key={project.id}
+                            onClick={() => selectCaseStudy(project.id)}
+                            className={`w-full text-left p-2 rounded-lg border transition-all duration-300 backdrop-blur-sm ${
+                              caseStudyBrowser.selectedProject === project.id
+                                ? 'bg-orange-500/20 border-orange-500/50 text-orange-300 shadow-lg shadow-orange-500/20'
+                                : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-gray-300 hover:text-white'
+                            }`}
+                          >
+                            <div className="text-sm font-medium mb-1">{project.name}</div>
+                            <div className="text-xs text-gray-400 mb-1">{project.description}</div>
+                            <div className="flex flex-wrap gap-1">
+                              {project.features.slice(0, 2).map((feature, index) => (
+                                <span
+                                  key={index}
+                                  className="text-xs px-1.5 py-0.5 bg-white/10 rounded-full text-gray-300"
+                                >
+                                  {feature}
+                                </span>
+                              ))}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Browser */}
+              <div className="flex-1 flex flex-col p-3">
+                {caseStudyBrowser.selectedProject ? (
+                  <div className="flex-1 relative bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+                    <div className="absolute inset-0 bg-white overflow-hidden rounded-xl">
+                      {(() => {
+                        // Find project across all categories
+                        let project = null;
+                        for (const category of caseStudyCategories) {
+                          project = category.projects.find(p => p.id === caseStudyBrowser.selectedProject);
+                          if (project) break;
+                        }
+                        
+                        if (!project) return null;
+                        
+                        if (project.type === 'pdf') {
+                          return (
+                            <iframe
+                              src={`${caseStudyBrowser.currentUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                              className="w-full h-full border-0"
+                              title="PDF Viewer"
+                              style={{
+                                transform: 'scale(1)',
+                                transformOrigin: 'top left',
+                                width: '100%',
+                                height: '100%'
+                              }}
+                            />
+                          );
+                        } else if (project.type === 'video') {
+                          return (
+                            <video
+                              src={caseStudyBrowser.currentUrl || ''}
+                              className="w-full h-full object-contain bg-black"
+                              controls
+                              preload="metadata"
+                            >
+                              Your browser does not support the video tag.
+                            </video>
+                          );
+                        } else if (project.type === 'external') {
+                          return (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                              <div className="text-center p-8">
+                                <div className="mb-4">
+                                  <ExternalLink className="h-16 w-16 mx-auto text-orange-500" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-800 mb-2">External Website</h3>
+                                <p className="text-gray-600 mb-4">This website cannot be embedded due to security restrictions.</p>
+                                <a
+                                  href={caseStudyBrowser.currentUrl || ''}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                  Open in New Tab
+                                </a>
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <iframe
+                              src={caseStudyBrowser.currentUrl || ''}
+                              className="w-full h-full border-0"
+                              title="Case Study Browser"
+                              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                              style={{
+                                transform: 'scale(1)',
+                                transformOrigin: 'top left',
+                                width: '100%',
+                                height: '100%'
+                              }}
+                            />
+                          );
+                        }
+                      })()}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-gray-400 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
+                    <div className="text-center">
+                      <div className="p-3 bg-orange-500/20 rounded-full mb-3 backdrop-blur-sm">
+                        <Monitor className="h-8 w-8 mx-auto text-orange-400" />
+                      </div>
+                      <h3 className="text-base font-medium text-white mb-1">Select a Project</h3>
+                      <p className="text-xs text-gray-300">Choose from our categorized portfolio to view detailed projects</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

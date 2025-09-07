@@ -19,7 +19,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Send, Mail, Phone, MapPin, Calendar, ExternalLink, MessageCircle } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import { useEffect } from 'react';
-import { useLanguage } from '@/contexts/language-context';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -31,7 +30,6 @@ type ContactFormValues = z.infer<typeof formSchema>;
 
 export default function Contact() {
   const { toast } = useToast();
-  const { t } = useLanguage();
 
   // Initialize EmailJS
   useEffect(() => {
@@ -147,7 +145,7 @@ export default function Contact() {
           {/* Unique Header */}
           <div className="text-center mb-12 space-y-4">
             <p className="text-lg md:text-xl text-zinc-300 max-w-2xl mx-auto leading-relaxed">
-              {t('contact.header')}
+              Let's Connect
             </p>
           </div>
 
@@ -158,8 +156,8 @@ export default function Contact() {
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-700 rounded-full mb-4">
                   <MessageCircle className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{t('contact.title')}</h3>
-                <p className="text-zinc-400 text-sm">{t('contact.subtitle')}</p>
+                <h3 className="text-xl font-semibold text-white mb-2">Get in Touch</h3>
+                <p className="text-zinc-400 text-sm">We'd love to hear from you</p>
               </div>
               
               <Form {...form}>
@@ -173,7 +171,7 @@ export default function Contact() {
                           <FormControl>
                             <div className="relative group">
                               <FormLabel className="absolute left-4 top-3 text-xs text-zinc-400 transition-all duration-200 group-focus-within:text-white">
-                                {t('contact.form.name')}
+                                Name
                               </FormLabel>
                               <Input 
                                 {...field} 
@@ -194,7 +192,7 @@ export default function Contact() {
                           <FormControl>
                             <div className="relative group">
                               <FormLabel className="absolute left-4 top-3 text-xs text-zinc-400 transition-all duration-200 group-focus-within:text-white">
-                                {t('contact.form.email')}
+                                Email
                               </FormLabel>
                               <Input 
                                 {...field} 
@@ -216,7 +214,7 @@ export default function Contact() {
                         <FormControl>
                           <div className="relative group">
                             <FormLabel className="absolute left-4 top-3 text-xs text-zinc-400 transition-all duration-200 group-focus-within:text-white">
-                              {t('contact.form.message')}
+                              Message
                             </FormLabel>
                             <Textarea 
                               className="min-h-[120px] bg-zinc-900/60 border-zinc-700 focus:ring-gray-500/50 focus:border-gray-500/50 text-white rounded-xl pt-8 transition-all duration-200 hover:border-zinc-600 resize-none text-sm" 
@@ -237,12 +235,12 @@ export default function Contact() {
                     {form.formState.isSubmitting ? (
                       <div className="flex items-center space-x-3">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>{t('contact.form.sending')}</span>
+                        <span>Sending...</span>
                       </div>
                     ) : (
                       <div className="flex items-center space-x-3">
                         <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        <span>{t('contact.form.submit')}</span>
+                        <span>Send Message</span>
                       </div>
                     )}
                   </Button>
@@ -251,7 +249,7 @@ export default function Contact() {
               
               <div className="text-center pt-4 border-t border-gray-700/30">
                 <p className="text-xs text-zinc-400">
-                  {t('contact.form.response-time')}
+                  We typically respond within 24 hours
                 </p>
               </div>
             </div>

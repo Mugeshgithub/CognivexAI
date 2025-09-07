@@ -35,3 +35,6 @@ GOOGLE_SHEETS_ID=YOUR_SHEET_ID_HERE
 
 **This will make lead capture work immediately!** 🎯
 
+
+
+

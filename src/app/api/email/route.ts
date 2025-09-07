@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import emailjs from '@emailjs/browser';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,53 +12,94 @@ export async function POST(request: NextRequest) {
 
     console.log('📧 Email API called:', { userEmail, userName, meetingDetails });
 
-    // Initialize EmailJS with the public key
-    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || 'COtKbmSCzdpiCZDwB';
-    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'service_af5vxka';
-    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || 'template_1csll1o';
+    // EmailJS configuration
+    const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || 'service_af5vxka';
+    const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || 'template_1csll1o';
+    const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || 'COtKbmSCzdpiCZDwB';
+    const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
 
-    console.log('🔧 EmailJS Configuration:', { publicKey, serviceId, templateId });
+    console.log('🔧 EmailJS Configuration:', { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY });
 
     try {
       // Send email to user
+      const userMessage = typeof meetingDetails === 'string' ? meetingDetails : 
+        `Meeting scheduled for ${meetingDetails.date} at ${meetingDetails.time} ${meetingDetails.timezone || 'UTC'}. Meeting Link: ${meetingDetails.meetingLink || 'TBD'}`;
+
       const userTemplateParams = {
-        name: userName,
-        email: userEmail,
-        message: typeof meetingDetails === 'string' ? meetingDetails : 
-          `Meeting scheduled for ${meetingDetails.date} at ${meetingDetails.time} ${meetingDetails.timezone}. Meeting Link: ${meetingDetails.meetingLink || 'TBD'}`,
-        time: new Date().toLocaleString()
+        to_name: userName,
+        to_email: userEmail,
+        from_name: 'CognivexAI Team',
+        from_email: 'snazzy.mugi@gmail.com',
+        message: userMessage,
+        time: new Date().toLocaleString(),
+        subject: 'Meeting Confirmation - CognivexAI'
       };
 
       console.log('📤 Sending user email with params:', userTemplateParams);
       
-      const userEmailResult = await emailjs.send(
-        serviceId,
-        templateId,
-        userTemplateParams,
-        publicKey
-      );
+      const userEmailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEMPLATE_ID,
+          user_id: EMAILJS_PUBLIC_KEY,
+          accessToken: EMAILJS_PRIVATE_KEY,
+          template_params: userTemplateParams
+        })
+      });
 
-      console.log('✅ User email sent successfully:', userEmailResult);
+      let userEmailResult;
+      const userResponseText = await userEmailResponse.text();
+      try {
+        userEmailResult = JSON.parse(userResponseText);
+      } catch (jsonError) {
+        // EmailJS sometimes returns "OK" as plain text
+        userEmailResult = { status: userEmailResponse.status, text: userResponseText };
+      }
+      console.log('✅ User email result:', userEmailResult);
 
       // Send email to owner
+      const ownerMessage = `New ${typeof meetingDetails === 'string' ? 'lead inquiry' : 'meeting scheduled'} with ${userName} (${userEmail}) for ${typeof meetingDetails === 'string' ? 'contact form submission' : 
+        `${meetingDetails.date} at ${meetingDetails.time} ${meetingDetails.timezone || 'UTC'}. Meeting Link: ${meetingDetails.meetingLink || 'TBD'}`}`;
+
       const ownerTemplateParams = {
-        name: 'CognivexAI Team',
-        email: ownerEmail,
-        message: `New meeting scheduled with ${userName} (${userEmail}) for ${typeof meetingDetails === 'string' ? 'contact form submission' : 
-          `${meetingDetails.date} at ${meetingDetails.time} ${meetingDetails.timezone}. Meeting Link: ${meetingDetails.meetingLink || 'TBD'}`}`,
-        time: new Date().toLocaleString()
+        to_name: 'CognivexAI Team',
+        to_email: ownerEmail,
+        from_name: 'CognivexAI System',
+        from_email: 'snazzy.mugi@gmail.com',
+        message: ownerMessage,
+        time: new Date().toLocaleString(),
+        subject: 'New Lead/Meeting Notification - CognivexAI'
       };
 
       console.log('📤 Sending owner email with params:', ownerTemplateParams);
       
-      const ownerEmailResult = await emailjs.send(
-        serviceId,
-        templateId,
-        ownerTemplateParams,
-        publicKey
-      );
+      const ownerEmailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEMPLATE_ID,
+          user_id: EMAILJS_PUBLIC_KEY,
+          accessToken: EMAILJS_PRIVATE_KEY,
+          template_params: ownerTemplateParams
+        })
+      });
 
-      console.log('✅ Owner email sent successfully:', ownerEmailResult);
+      let ownerEmailResult;
+      const ownerResponseText = await ownerEmailResponse.text();
+      try {
+        ownerEmailResult = JSON.parse(ownerResponseText);
+      } catch (jsonError) {
+        // EmailJS sometimes returns "OK" as plain text
+        ownerEmailResult = { status: ownerEmailResponse.status, text: ownerResponseText };
+      }
+      console.log('✅ Owner email result:', ownerEmailResult);
 
       return NextResponse.json({
         success: true,

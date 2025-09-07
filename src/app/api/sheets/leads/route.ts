@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const response = await sheetsAPI.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: actualRange,
-      valueInputOption: 'RAW',
+      valueInputOption: 'USER_ENTERED', // Changed from 'RAW' to respect sheet formatting
       insertDataOption: 'INSERT_ROWS',
       requestBody: {
         values: [rowData]

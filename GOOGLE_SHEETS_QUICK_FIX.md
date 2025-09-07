@@ -56,3 +56,6 @@ npm run dev
 
 **The main issue is the missing .env.local file and wrong sheet configuration!**
 
+
+
+

@@ -3,10 +3,8 @@
 
 import { ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useLanguage } from '@/contexts/language-context';
 
 export default function Hero() {
-    const { t } = useLanguage();
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -132,9 +130,9 @@ export default function Hero() {
                         <div className="space-y-2">
                           <p className="text-base text-gray-300/80 sm:text-lg md:text-xl">
                             <span className="inline-block animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-                              {t('hero.tagline.empowering')}{' '}
+                              Empowering minds,{' '}
                               <span className="p-1.5 md:p-2 rounded-md bg-orange-500/20 text-orange-300 font-semibold text-sm md:text-base animate-pulse border border-orange-400/30">
-                                {t('hero.tagline.engineering')}
+                                engineering magic.
                               </span>
                             </span>
                           </p>
@@ -146,7 +144,7 @@ export default function Hero() {
                 href="#products"
                 className="absolute bottom-10 z-20 flex items-center gap-2 rounded-full border border-border bg-background/50 px-4 py-2 text-sm text-muted-foreground backdrop-blur-sm transition-colors hover:bg-secondary"
             >
-                {t('hero.scroll')}
+                Scroll to explore
                 <ChevronDown className="h-4 w-4" />
             </a>
         </section>
