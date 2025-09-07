@@ -4,10 +4,41 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 16px; /* Ensure consistent base font size */
+}
+
+/* Prevent zoom differences */
+* {
+  box-sizing: border-box;
+}
+
+/* Ensure consistent font rendering across environments */
+@layer base {
+  html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  /* Prevent font size differences */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  /* Ensure consistent scaling */
+  * {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
 }
 
 body {
   cursor: none;
+  font-size: 16px; /* Consistent base font size */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body *, a, button {
