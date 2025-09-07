@@ -516,4 +516,4 @@ export class CognivexRAGSystem {
     }
     return "Happy to provide more details — which topic are you most interested in?";
   }
-}
+} 
