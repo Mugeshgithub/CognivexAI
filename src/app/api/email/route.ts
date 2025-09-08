@@ -27,12 +27,15 @@ export async function POST(request: NextRequest) {
         `Meeting scheduled for ${meetingDetails.date} at ${meetingDetails.time} ${meetingDetails.timezone || 'UTC'}. Meeting Link: ${meetingDetails.meetingLink || 'TBD'}`;
 
       const userTemplateParams = {
+        name: userName,
         to_name: userName,
         to_email: userEmail,
         from_name: 'CognivexAI Team',
         from_email: 'snazzy.mugi@gmail.com',
         message: userMessage,
-        time: new Date().toLocaleString(),
+        userMessage: typeof meetingDetails === 'string' ? 'Consultation request' : (meetingDetails.userMessage || 'Consultation request'),
+        meetingLink: typeof meetingDetails === 'string' ? 'TBD' : (meetingDetails.meetingLink || 'TBD'),
+        time: typeof meetingDetails === 'string' ? new Date().toLocaleString() : `${meetingDetails.date} at ${meetingDetails.time} ${meetingDetails.timezone || 'UTC'}`,
         subject: 'Meeting Confirmation - CognivexAI'
       };
 
