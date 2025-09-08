@@ -47,6 +47,8 @@ export async function POST(request: NextRequest) {
 
     const calendarInstance = await initializeCalendar();
     const calendarId = process.env.GOOGLE_CALENDAR_ID || 'snazzy.mugi@gmail.com';
+    
+    console.log('📅 Using calendar ID:', calendarId);
 
     switch (action) {
       case 'checkAvailability':
