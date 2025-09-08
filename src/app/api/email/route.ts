@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY;
 
     console.log('🔧 EmailJS Configuration:', { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY });
+    console.log('🔑 Private Key Status:', EMAILJS_PRIVATE_KEY ? 'Set' : 'NOT SET - This will cause 403 errors!');
 
     try {
       // Send email to user
