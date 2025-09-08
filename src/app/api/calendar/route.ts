@@ -78,6 +78,8 @@ export async function POST(request: NextRequest) {
             const eventStart = new Date(event.start?.dateTime || event.start?.date);
             const eventEnd = new Date(event.end?.dateTime || event.end?.date);
             console.log(`  - ${event.summary}: ${eventStart.toISOString()} - ${eventEnd.toISOString()}`);
+            console.log(`    Raw start: ${JSON.stringify(event.start)}`);
+            console.log(`    Raw end: ${JSON.stringify(event.end)}`);
           });
 
           // Check if any existing event overlaps with the requested time
