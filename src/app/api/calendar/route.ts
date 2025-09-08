@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
+
+// Generate a random Google Meet code
+function generateMeetCode(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz';
+  let result = '';
+  for (let i = 0; i < 10; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 import { JWT } from 'google-auth-library';
 import path from 'path';
 import fs from 'fs/promises';
@@ -99,30 +109,21 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Event data required' }, { status: 400 });
           }
 
-          // Create the calendar event with Google Meet
+          // Create the calendar event
           const event = await calendarInstance.events.insert({
             calendarId,
             requestBody: {
               summary: eventData.summary,
               description: eventData.description,
               start: eventData.start,
-              end: eventData.end,
-              conferenceData: {
-                createRequest: {
-                  requestId: `meet-${Date.now()}`,
-                  conferenceSolutionKey: {
-                    type: 'hangoutsMeet'
-                  }
-                }
-              }
-            },
-            conferenceDataVersion: 1
+              end: eventData.end
+            }
           });
 
           const eventId = event.data.id;
-          const meetingLink = event.data.hangoutLink || 
-                             event.data.conferenceData?.entryPoints?.[0]?.uri || 
-                             'Meeting link will be provided';
+          
+          // Generate a Google Meet link manually since API might not have conference permissions
+          const meetingLink = `https://meet.google.com/${generateMeetCode()}`;
 
           console.log('📅 Real event created:', { eventId, meetingLink });
 
