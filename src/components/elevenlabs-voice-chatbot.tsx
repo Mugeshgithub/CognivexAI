@@ -141,8 +141,10 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
       
       console.log('🔍 Checking real calendar availability for:', date);
       
-      // Check real availability
-      checkAvailability(date);
+      // Add a small delay to ensure loading state is visible
+      setTimeout(() => {
+        checkAvailability(date);
+      }, 100);
     }
   };
 
