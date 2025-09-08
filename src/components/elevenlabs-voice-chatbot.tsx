@@ -109,8 +109,8 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
           }
         } catch (slotError) {
           console.error(`Error checking slot ${time}:`, slotError);
-          // Add slot anyway if API fails for individual slot
-          availableSlots.push(time);
+          // Don't add slot if API fails - this prevents duplicate bookings
+          console.log(`❌ Slot ${time} marked as unavailable due to API error`);
         }
       }
       
@@ -119,11 +119,10 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
       setShowTimeSlots(true);
     } catch (error) {
       console.error('Error checking availability:', error);
-      // Fallback to showing all slots if API fails
-      const fallbackSlots = generateTimeSlots();
-      console.log('🔄 Using fallback slots:', fallbackSlots);
-      setAvailableSlots(fallbackSlots);
-      setShowTimeSlots(true);
+      // Don't show any slots if API fails - this prevents duplicate bookings
+      console.log('❌ No slots available due to calendar API failure');
+      setAvailableSlots([]);
+      setShowTimeSlots(false);
     } finally {
       setCheckingAvailability(false);
     }
@@ -134,13 +133,12 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
     setFormData(prev => ({ ...prev, meetingDate: date, meetingTime: '' }));
     setShowTimeSlots(false);
     if (date) {
-      // Show time slots immediately for testing
-      const testSlots = generateTimeSlots();
-      console.log('🧪 Showing test slots immediately:', testSlots);
-      setAvailableSlots(testSlots);
-      setShowTimeSlots(true);
+      // Don't show test slots - only show real available slots
+      console.log('🔍 Checking real calendar availability for:', date);
+      setAvailableSlots([]);
+      setShowTimeSlots(false);
       
-      // Then check real availability
+      // Check real availability
       checkAvailability(date);
     }
   };
@@ -1077,6 +1075,25 @@ export default function ElevenLabsVoiceChatbot() {
           const startDateTime = new Date(`${meetingDate}T${meetingTime}:00`);
           const endDateTime = new Date(startDateTime.getTime() + 30 * 60000); // 30 minutes duration
 
+          // Final availability check before creating event
+          console.log('🔍 Final availability check before booking...');
+          const finalCheckResponse = await fetch('/api/calendar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'checkAvailability',
+              date: meetingDate,
+              time: meetingTime,
+              duration: 30
+            })
+          });
+
+          const finalCheckResult = await finalCheckResponse.json();
+          if (!finalCheckResult.success || !finalCheckResult.isAvailable) {
+            throw new Error(`Time slot ${meetingTime} on ${meetingDate} is no longer available`);
+          }
+
+          console.log('✅ Time slot confirmed available, creating event...');
           const calendarResponse = await fetch('/api/calendar', {
             method: 'POST',
             headers: {
