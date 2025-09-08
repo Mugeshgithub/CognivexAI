@@ -23,7 +23,7 @@ export default function RootLayout({
     <html suppressHydrationWarning>
              <head>
                <meta charSet="utf-8" />
-               <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+               <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
                <title>CognivexAI</title>
                <meta name="description" content="A discovery engine for everyone." />
                <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,6 +41,34 @@ export default function RootLayout({
                      font-display: swap;
                      font-weight: 400 700;
                    }
+                 `
+               }} />
+               <script dangerouslySetInnerHTML={{
+                 __html: `
+                   // Force consistent zoom and prevent browser scaling
+                   (function() {
+                     // Reset zoom on load
+                     document.documentElement.style.zoom = '1';
+                     document.body.style.zoom = '1';
+                     
+                     // Prevent zoom changes
+                     let lastZoom = 1;
+                     const observer = new MutationObserver(function(mutations) {
+                       mutations.forEach(function(mutation) {
+                         if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                           const currentZoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+                           if (Math.abs(currentZoom - lastZoom) > 0.01) {
+                             document.documentElement.style.zoom = '1';
+                             document.body.style.zoom = '1';
+                           }
+                           lastZoom = currentZoom;
+                         }
+                       });
+                     });
+                     
+                     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+                     observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+                   })();
                  `
                }} />
              </head>
