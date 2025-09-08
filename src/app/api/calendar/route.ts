@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
       case 'checkAvailability':
         try {
           // Check for existing events that overlap with the requested time
-          // Ensure consistent timezone handling by using UTC
-          const requestedStart = new Date(`${date}T${time}:00Z`);
+          // Events are stored in UTC+2, so we need to check in the same timezone
+          const requestedStart = new Date(`${date}T${time}:00+02:00`);
           const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
 
           // Get all events for the entire day to check for overlaps
