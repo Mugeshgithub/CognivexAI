@@ -73,21 +73,10 @@ export async function POST(request: NextRequest) {
           const events = response.data.items || [];
           let isAvailable = true;
 
-          console.log(`📅 Found ${events.length} events for ${date}:`);
-          events.forEach(event => {
-            const eventStart = new Date(event.start?.dateTime || event.start?.date);
-            const eventEnd = new Date(event.end?.dateTime || event.end?.date);
-            console.log(`  - ${event.summary}: ${eventStart.toISOString()} - ${eventEnd.toISOString()}`);
-            console.log(`    Raw start: ${JSON.stringify(event.start)}`);
-            console.log(`    Raw end: ${JSON.stringify(event.end)}`);
-          });
-
           // Check if any existing event overlaps with the requested time
           for (const event of events) {
             const eventStart = new Date(event.start?.dateTime || event.start?.date);
             const eventEnd = new Date(event.end?.dateTime || event.end?.date);
-
-            console.log(`🔍 Checking overlap: ${event.summary} (${eventStart.toISOString()} - ${eventEnd.toISOString()}) vs requested (${requestedStart.toISOString()} - ${requestedEnd.toISOString()})`);
 
             // Check for overlap: events overlap if one starts before the other ends
             if (eventStart < requestedEnd && eventEnd > requestedStart) {

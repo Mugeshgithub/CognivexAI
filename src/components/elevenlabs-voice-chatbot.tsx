@@ -213,7 +213,6 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
             <label className="text-xs text-gray-300">
               Available time slots ({availableSlots.length} slots)
             </label>
-            {console.log('🔍 UI Debug - checkingAvailability:', checkingAvailability, 'availableSlots.length:', availableSlots.length)}
             {checkingAvailability ? (
               <div className="flex items-center gap-2 text-xs text-gray-400">
                 <Loader2 className="h-3 w-3 animate-spin" />
