@@ -99,20 +99,30 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Event data required' }, { status: 400 });
           }
 
-          // Create the calendar event
+          // Create the calendar event with Google Meet
           const event = await calendarInstance.events.insert({
             calendarId,
             requestBody: {
               summary: eventData.summary,
               description: eventData.description,
               start: eventData.start,
-              end: eventData.end
-              // Removed attendees and conferenceData to avoid domain delegation issues
-            }
+              end: eventData.end,
+              conferenceData: {
+                createRequest: {
+                  requestId: `meet-${Date.now()}`,
+                  conferenceSolutionKey: {
+                    type: 'hangoutsMeet'
+                  }
+                }
+              }
+            },
+            conferenceDataVersion: 1
           });
 
           const eventId = event.data.id;
-          const meetingLink = event.data.hangoutLink || 'Meeting link will be provided';
+          const meetingLink = event.data.hangoutLink || 
+                             event.data.conferenceData?.entryPoints?.[0]?.uri || 
+                             'Meeting link will be provided';
 
           console.log('📅 Real event created:', { eventId, meetingLink });
 
