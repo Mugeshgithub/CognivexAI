@@ -1619,9 +1619,10 @@ export default function ElevenLabsVoiceChatbot() {
                         if (project.type === 'pdf') {
                           return (
                             <iframe
-                              src={`${project.url}#toolbar=1&navpanes=1&scrollbar=1`}
+                              src={`${project.url}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
                               className="w-full h-full border-0"
                               title="PDF Viewer"
+                              loading="lazy"
                               style={{
                                 transform: 'scale(1)',
                                 transformOrigin: 'top left',

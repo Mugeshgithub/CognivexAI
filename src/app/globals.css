@@ -32,24 +32,18 @@ html {
     text-size-adjust: 100%;
   }
   
-/* Force consistent zoom level */
+/* Optimized zoom controls - less aggressive */
 html {
-  zoom: 1 !important;
-  -moz-transform: scale(1) !important;
-  -moz-transform-origin: 0 0 !important;
-  -webkit-text-size-adjust: 100% !important;
-  -ms-text-size-adjust: 100% !important;
-  text-size-adjust: 100% !important;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* Prevent browser zoom differences */
 body {
-  zoom: 1 !important;
-  -moz-transform: scale(1) !important;
-  -moz-transform-origin: 0 0 !important;
-  -webkit-text-size-adjust: 100% !important;
-  -ms-text-size-adjust: 100% !important;
-  text-size-adjust: 100% !important;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   overflow-x: hidden;
 }
   
