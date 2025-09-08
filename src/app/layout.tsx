@@ -11,6 +11,7 @@ import SplashScreen from '@/components/splash-screen';
 import { useState, useEffect } from 'react';
 import CustomCursor from '@/components/custom-cursor';
 import BreakpointDetector from '@/components/debug/breakpoint-detector';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function RootLayout({
   children,
@@ -47,6 +48,7 @@ export default function RootLayout({
             <BreakpointDetector />
           </div>
           <SplashScreen isVisible={loading} onFinished={() => setLoading(false)} />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
