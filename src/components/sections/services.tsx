@@ -47,7 +47,7 @@ export default function Services() {
     <div className="relative w-full overflow-hidden bg-black">
       {/* Our Process Section */}
       <section className="relative w-full py-16 md:py-20 lg:py-24 flex flex-col items-center justify-center overflow-hidden">
-        <div className="w-full px-4 md:px-8 lg:px-12">
+        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12">
           <motion.div
             className="w-full"
             initial={{ opacity: 0, y: 20 }}
@@ -57,7 +57,7 @@ export default function Services() {
           >
             {/* Title - Center aligned, orange, capital letters, transparent */}
             <motion.h2 
-              className="text-center text-[2.5rem] md:text-[3rem] font-bold text-orange-400/40 leading-none tracking-tight mb-20 md:mb-24"
+              className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[2.5rem] xl:text-[3rem] font-bold text-orange-400/40 leading-none tracking-tight mb-12 sm:mb-16 md:mb-20 lg:mb-24"
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, delay: 0.5 }}
@@ -68,9 +68,9 @@ export default function Services() {
               
             {/* Animated Process Flow */}
             <div className="relative max-w-6xl mx-auto">
-              {/* Animated Ball */}
+              {/* Animated Ball - Hidden on mobile */}
               <motion.div
-                className="absolute top-1/2 left-0 w-6 h-6 bg-orange-400 rounded-full shadow-lg z-10"
+                className="absolute top-1/2 left-0 w-4 h-4 sm:w-6 sm:h-6 bg-orange-400 rounded-full shadow-lg z-10 hidden sm:block"
                 animate={{
                   x: [0, 200, 400, 600, 800, 1000],
                   y: [0, -30, 0, -30, 0, -30, 0]
@@ -88,11 +88,11 @@ export default function Services() {
               
               {/* Process Steps with Flow Lines */}
               <div className="relative">
-                {/* Flow Line */}
-                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-orange-400/60 via-orange-400/40 to-orange-400/20 transform -translate-y-1/2" />
+                {/* Flow Line - Hidden on mobile */}
+                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-orange-400/60 via-orange-400/40 to-orange-400/20 transform -translate-y-1/2 hidden sm:block" />
                 
-                {/* Process Steps */}
-                <div className="flex justify-between items-center relative z-20">
+                {/* Process Steps - Stack on mobile */}
+                <div className="flex flex-col sm:flex-row justify-between items-center relative z-20 gap-4 sm:gap-0">
                   {[
                     {
                       step: `1. UNDERSTAND`,
@@ -129,16 +129,16 @@ export default function Services() {
                     return (
                       <motion.div
                         key={index}
-                        className="flex flex-col items-center text-center max-w-[150px]"
+                        className="flex flex-col items-center text-center max-w-[120px] sm:max-w-[150px] w-full sm:w-auto"
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: index * 0.1 }}
                         viewport={{ once: true }}
                       >
                         {/* Process Node */}
-                        <div className="relative mb-4">
-                          <div className="w-16 h-16 border-2 border-orange-400/60 rounded-full flex items-center justify-center mb-3 hover:border-orange-400 hover:bg-orange-400/10 transition-all duration-300">
-                            <IconComponent className="w-7 h-7 text-orange-400" />
+                        <div className="relative mb-3 sm:mb-4">
+                          <div className="w-12 h-12 sm:w-16 sm:h-16 border-2 border-orange-400/60 rounded-full flex items-center justify-center mb-2 sm:mb-3 hover:border-orange-400 hover:bg-orange-400/10 transition-all duration-300">
+                            <IconComponent className="w-5 h-5 sm:w-7 sm:h-7 text-orange-400" />
                           </div>
                           {/* Pulse Effect */}
                           <motion.div
@@ -157,10 +157,10 @@ export default function Services() {
                         
                         {/* Step Content */}
                         <div>
-                          <h3 className="text-sm md:text-base font-bold text-orange-400 mb-2">
+                          <h3 className="text-xs sm:text-sm md:text-base font-bold text-orange-400 mb-1 sm:mb-2">
                             {item.step}
                           </h3>
-                          <p className="text-xs md:text-sm text-gray-300 leading-relaxed">
+                          <p className="text-xs sm:text-xs md:text-sm text-gray-300 leading-relaxed">
                             {item.description}
                           </p>
                         </div>
@@ -172,9 +172,9 @@ export default function Services() {
             </div>
           
             {/* Services Carousel Section - Centered */}
-            <div className="flex justify-center items-center mt-20">
+            <div className="flex justify-center items-center mt-12 sm:mt-16 md:mt-20">
               <motion.div
-                className="relative h-[400px] w-full max-w-2xl flex items-center justify-center"
+                className="relative h-[300px] sm:h-[350px] md:h-[400px] w-full max-w-2xl flex items-center justify-center"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7 }}

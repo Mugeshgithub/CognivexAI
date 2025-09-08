@@ -1403,19 +1403,19 @@ export default function ElevenLabsVoiceChatbot() {
           </div>
         )}
         
-        <Button onClick={() => setIsOpen(!isOpen)} size="icon" className="rounded-full h-16 w-16 md:h-18 md:w-18 shadow-lg flex items-center justify-center bg-black hover:bg-gray-800">
-          {isOpen ? <X className="h-8 w-8 md:h-9 md:w-9 text-white" /> : <AnimatedLogo className="h-10 w-10 md:h-12 md:w-12" />}
+        <Button onClick={() => setIsOpen(!isOpen)} size="icon" className="rounded-full h-14 w-14 sm:h-16 sm:w-16 md:h-18 md:w-18 shadow-lg flex items-center justify-center bg-black hover:bg-gray-800">
+          {isOpen ? <X className="h-6 w-6 sm:h-8 sm:w-8 md:h-9 md:w-9 text-white" /> : <AnimatedLogo className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12" />}
           <span className="sr-only">{isOpen ? 'Close chat' : 'Open chat'}</span>
         </Button>
       </div>
       
       {isOpen && (
-        <Card className={`fixed bottom-24 right-6 z-50 w-[calc(100vw-3rem)] md:w-96 h-96 md:h-[500px] flex flex-col rounded-2xl animate-in slide-in-from-bottom-10 fade-in-50 duration-300 transition-all duration-500 ${
+        <Card className={`fixed bottom-20 right-3 sm:bottom-24 sm:right-6 z-50 w-[calc(100vw-1.5rem)] sm:w-[calc(100vw-3rem)] md:w-96 h-[calc(100vh-6rem)] sm:h-96 md:h-[500px] flex flex-col rounded-2xl animate-in slide-in-from-bottom-10 fade-in-50 duration-300 transition-all duration-500 ${
           voiceAgent.isActive 
             ? 'ring-4 ring-orange-500/50 shadow-2xl shadow-orange-500/25 bg-gradient-to-br from-gray-900/95 to-gray-800/95' 
             : 'bg-black/90 backdrop-blur-lg border border-gray-700/50 shadow-2xl'
         }`}>
-          <CardHeader className="flex flex-row items-center justify-between p-3 border-b border-gray-700/50">
+          <CardHeader className="flex flex-row items-center justify-between p-2 sm:p-3 border-b border-gray-700/50">
             <div className="flex items-center space-x-3">
               <Avatar className="h-8 w-8 bg-gradient-to-r from-orange-500 to-orange-600">
                 <AvatarFallback className="text-white font-semibold">Z</AvatarFallback>
@@ -1473,7 +1473,7 @@ export default function ElevenLabsVoiceChatbot() {
             </div>
           )}
           
-          <div className="flex-1 p-3 overflow-y-auto" ref={scrollAreaRef}>
+          <div className="flex-1 p-2 sm:p-3 overflow-y-auto" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((message, index) => renderRichResponse(message, index))}
               {isLoading && (
@@ -1539,15 +1539,15 @@ export default function ElevenLabsVoiceChatbot() {
       {/* Case Study Browser */}
       {caseStudyBrowser.isOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-2">
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl w-full max-w-6xl h-[90dvh] flex flex-col shadow-2xl">
+          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl w-full max-w-6xl h-[95dvh] sm:h-[90dvh] flex flex-col shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500/20 rounded-lg backdrop-blur-sm">
-                  <Monitor className="h-5 w-5 text-orange-400" />
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-orange-500/20 rounded-lg backdrop-blur-sm">
+                  <Monitor className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Our Projects</h2>
+                  <h2 className="text-base sm:text-lg font-bold text-white">Our Projects</h2>
                   <p className="text-xs text-gray-300">Explore our portfolio of innovative solutions</p>
                 </div>
               </div>
