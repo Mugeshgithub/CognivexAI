@@ -122,7 +122,7 @@ export default function Hero() {
                 <div className="flex flex-col items-center space-y-6 sm:space-y-8 md:space-y-10">
                     <div className="space-y-4 sm:space-y-6 md:space-y-8">
                         <div className="relative inline-block">
-                            <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl leading-tight">
+                            <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl leading-tight">
                                 CognivexAI
                             </h1>
                             <span className="absolute -right-1 -top-1 text-sm sm:-right-2 sm:text-base md:-right-3 md:text-lg lg:-right-4 lg:text-xl xl:-right-6 xl:text-2xl">©</span>

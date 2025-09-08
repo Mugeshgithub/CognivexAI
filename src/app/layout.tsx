@@ -47,27 +47,47 @@ export default function RootLayout({
                  __html: `
                    // Force consistent zoom and prevent browser scaling
                    (function() {
-                     // Reset zoom on load
-                     document.documentElement.style.zoom = '1';
-                     document.body.style.zoom = '1';
+                     // Wait for DOM to be ready
+                     if (document.readyState === 'loading') {
+                       document.addEventListener('DOMContentLoaded', initZoomControl);
+                     } else {
+                       initZoomControl();
+                     }
                      
-                     // Prevent zoom changes
-                     let lastZoom = 1;
-                     const observer = new MutationObserver(function(mutations) {
-                       mutations.forEach(function(mutation) {
-                         if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                           const currentZoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
-                           if (Math.abs(currentZoom - lastZoom) > 0.01) {
-                             document.documentElement.style.zoom = '1';
-                             document.body.style.zoom = '1';
-                           }
-                           lastZoom = currentZoom;
+                     function initZoomControl() {
+                       // Check if elements exist before accessing
+                       if (document.documentElement && document.body) {
+                         // Reset zoom on load
+                         document.documentElement.style.zoom = '1';
+                         document.body.style.zoom = '1';
+                         
+                         // Prevent zoom changes
+                         let lastZoom = 1;
+                         const observer = new MutationObserver(function(mutations) {
+                           mutations.forEach(function(mutation) {
+                             if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                               if (document.documentElement) {
+                                 const currentZoom = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+                                 if (Math.abs(currentZoom - lastZoom) > 0.01) {
+                                   document.documentElement.style.zoom = '1';
+                                   if (document.body) {
+                                     document.body.style.zoom = '1';
+                                   }
+                                 }
+                                 lastZoom = currentZoom;
+                               }
+                             }
+                           });
+                         });
+                         
+                         if (document.documentElement) {
+                           observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
                          }
-                       });
-                     });
-                     
-                     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
-                     observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+                         if (document.body) {
+                           observer.observe(document.body, { attributes: true, attributeFilter: ['style'] });
+                         }
+                       }
+                     }
                    })();
                  `
                }} />
