@@ -122,9 +122,8 @@ export async function POST(request: NextRequest) {
 
           const eventId = event.data.id;
           
-          // Since Google Meet API requires special permissions, we'll use a practical approach
-          // The host can create the meeting manually and share the link
-          const meetingLink = `Please contact the host (snazzy.mugi@gmail.com) for the meeting link. Meeting ID: ${eventId}`;
+          // Use your permanent Google Meet room for consultations
+          const meetingLink = `https://meet.google.com/azu-ooip-uba`;
 
           console.log('📅 Real event created:', { eventId, meetingLink });
 
