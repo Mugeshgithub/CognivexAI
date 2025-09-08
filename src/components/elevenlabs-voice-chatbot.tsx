@@ -123,6 +123,7 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
       setAvailableSlots([]);
       setShowTimeSlots(false);
     } finally {
+      console.log('🔄 Setting checkingAvailability to false');
       setCheckingAvailability(false);
     }
   };
@@ -133,6 +134,7 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
     setShowTimeSlots(false);
     if (date) {
       // Show loading state immediately
+      console.log('🔄 Setting checkingAvailability to true');
       setCheckingAvailability(true);
       setAvailableSlots([]);
       setShowTimeSlots(false);
@@ -209,6 +211,7 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
             <label className="text-xs text-gray-300">
               Available time slots ({availableSlots.length} slots)
             </label>
+            {console.log('🔍 UI Debug - checkingAvailability:', checkingAvailability, 'availableSlots.length:', availableSlots.length)}
             {checkingAvailability ? (
               <div className="flex items-center gap-2 text-xs text-gray-400">
                 <Loader2 className="h-3 w-3 animate-spin" />
