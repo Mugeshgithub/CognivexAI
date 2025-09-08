@@ -79,7 +79,6 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
   const checkAvailability = async (date: string) => {
     if (!date) return;
     
-    setCheckingAvailability(true);
     console.log('🔍 Checking availability for date:', date);
     
     try {
@@ -133,10 +132,12 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
     setFormData(prev => ({ ...prev, meetingDate: date, meetingTime: '' }));
     setShowTimeSlots(false);
     if (date) {
-      // Don't show test slots - only show real available slots
-      console.log('🔍 Checking real calendar availability for:', date);
+      // Show loading state immediately
+      setCheckingAvailability(true);
       setAvailableSlots([]);
       setShowTimeSlots(false);
+      
+      console.log('🔍 Checking real calendar availability for:', date);
       
       // Check real availability
       checkAvailability(date);
