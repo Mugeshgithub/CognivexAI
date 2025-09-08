@@ -36,6 +36,13 @@ export async function POST(request: NextRequest) {
       };
 
       console.log('📤 Sending user email with params:', userTemplateParams);
+      console.log('📤 EmailJS request body:', JSON.stringify({
+        service_id: EMAILJS_SERVICE_ID,
+        template_id: EMAILJS_TEMPLATE_ID,
+        user_id: EMAILJS_PUBLIC_KEY,
+        accessToken: EMAILJS_PRIVATE_KEY,
+        template_params: userTemplateParams
+      }, null, 2));
       
       const userEmailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
@@ -60,6 +67,8 @@ export async function POST(request: NextRequest) {
         userEmailResult = { status: userEmailResponse.status, text: userResponseText };
       }
       console.log('✅ User email result:', userEmailResult);
+      console.log('✅ User email response status:', userEmailResponse.status);
+      console.log('✅ User email response text:', userResponseText);
 
       // Send email to owner
       const ownerMessage = `New ${typeof meetingDetails === 'string' ? 'lead inquiry' : 'meeting scheduled'} with ${userName} (${userEmail}) for ${typeof meetingDetails === 'string' ? 'contact form submission' : 
