@@ -44,21 +44,39 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'checkAvailability':
         try {
-          // Check for existing events at the requested time
-          const startTime = new Date(`${date}T${time}:00`);
-          const endTime = new Date(startTime.getTime() + duration * 60000);
+          // Check for existing events that overlap with the requested time
+          const requestedStart = new Date(`${date}T${time}:00`);
+          const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
+
+          // Get all events for the entire day to check for overlaps
+          const dayStart = new Date(`${date}T00:00:00`);
+          const dayEnd = new Date(`${date}T23:59:59`);
 
           const response = await calendarInstance.events.list({
             calendarId,
-            timeMin: startTime.toISOString(),
-            timeMax: endTime.toISOString(),
+            timeMin: dayStart.toISOString(),
+            timeMax: dayEnd.toISOString(),
             singleEvents: true,
             orderBy: 'startTime'
           });
 
-          const isAvailable = response.data.items?.length === 0;
+          const events = response.data.items || [];
+          let isAvailable = true;
+
+          // Check if any existing event overlaps with the requested time
+          for (const event of events) {
+            const eventStart = new Date(event.start?.dateTime || event.start?.date);
+            const eventEnd = new Date(event.end?.dateTime || event.end?.date);
+
+            // Check for overlap: events overlap if one starts before the other ends
+            if (eventStart < requestedEnd && eventEnd > requestedStart) {
+              isAvailable = false;
+              console.log(`📅 Conflict found: ${event.summary} (${eventStart.toISOString()} - ${eventEnd.toISOString()}) overlaps with requested time (${requestedStart.toISOString()} - ${requestedEnd.toISOString()})`);
+              break;
+            }
+          }
           
-          console.log('📅 Real availability check:', { date, time, isAvailable });
+          console.log('📅 Real availability check:', { date, time, isAvailable, totalEvents: events.length });
           return NextResponse.json({ success: true, isAvailable });
         } catch (error) {
           console.error('❌ Availability check failed:', error);
@@ -153,6 +171,35 @@ export async function POST(request: NextRequest) {
         } catch (error) {
           console.error('❌ Alternative slots check failed:', error);
           return NextResponse.json({ success: false, error: 'Alternative slots check failed' }, { status: 500 });
+        }
+
+      case 'listEvents':
+        try {
+          const startDate = new Date(`${date}T00:00:00`);
+          const endDate = new Date(`${date}T23:59:59`);
+          
+          const response = await calendarInstance.events.list({
+            calendarId,
+            timeMin: startDate.toISOString(),
+            timeMax: endDate.toISOString(),
+            singleEvents: true,
+            orderBy: 'startTime'
+          });
+          
+          const events = response.data.items || [];
+          console.log(`📅 Found ${events.length} events on ${date}`);
+          
+          return NextResponse.json({ 
+            success: true, 
+            events: events.map(event => ({
+              summary: event.summary,
+              start: event.start?.dateTime || event.start?.date,
+              end: event.end?.dateTime || event.end?.date
+            }))
+          });
+        } catch (error) {
+          console.error('❌ List events failed:', error);
+          return NextResponse.json({ success: false, error: 'List events failed' }, { status: 500 });
         }
 
       default:
