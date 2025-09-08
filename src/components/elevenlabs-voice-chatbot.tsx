@@ -208,7 +208,7 @@ function BookingForm({ onSubmit, onCancel }: BookingFormProps) {
         </div>
 
         {/* Time Slot Selection */}
-        {showTimeSlots && (
+        {(showTimeSlots || checkingAvailability) && (
           <div className="space-y-2">
             <label className="text-xs text-gray-300">
               Available time slots ({availableSlots.length} slots)

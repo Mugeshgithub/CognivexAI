@@ -33,7 +33,14 @@ async function initializeCalendar() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      console.error('❌ JSON parsing error:', jsonError);
+      return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+    }
+    
     const { action, date, time, duration = 30, eventData } = body;
 
     console.log('📅 Calendar API called:', { action, date, time, duration });
