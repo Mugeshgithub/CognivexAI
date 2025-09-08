@@ -45,12 +45,13 @@ export async function POST(request: NextRequest) {
       case 'checkAvailability':
         try {
           // Check for existing events that overlap with the requested time
-          const requestedStart = new Date(`${date}T${time}:00`);
+          // Ensure consistent timezone handling by using UTC
+          const requestedStart = new Date(`${date}T${time}:00Z`);
           const requestedEnd = new Date(requestedStart.getTime() + duration * 60000);
 
           // Get all events for the entire day to check for overlaps
-          const dayStart = new Date(`${date}T00:00:00`);
-          const dayEnd = new Date(`${date}T23:59:59`);
+          const dayStart = new Date(`${date}T00:00:00Z`);
+          const dayEnd = new Date(`${date}T23:59:59Z`);
 
           const response = await calendarInstance.events.list({
             calendarId,
