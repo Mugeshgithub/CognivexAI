@@ -78,7 +78,7 @@ export default function RootLayout({
                  `
                }} />
              </head>
-      <body className="font-body antialiased bg-white dark:bg-background" style={{ position: 'relative', minHeight: '100%', top: '0px' }}>
+      <body className="font-body antialiased bg-white dark:bg-background relative min-h-screen">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

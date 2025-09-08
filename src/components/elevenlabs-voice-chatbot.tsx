@@ -1563,10 +1563,10 @@ export default function ElevenLabsVoiceChatbot() {
 
             <div className="flex-1 flex min-h-0">
               {/* Project List */}
-              <div className="w-72 border-r border-white/10 p-3 overflow-y-auto">
-                <div className="space-y-3">
+              <div className="w-32 sm:w-48 md:w-64 lg:w-72 border-r border-white/10 p-1.5 sm:p-2 md:p-3 overflow-y-auto">
+                <div className="space-y-2 sm:space-y-3">
                   {caseStudyCategories.map((category) => (
-                    <div key={category.title} className="space-y-2">
+                    <div key={category.title} className="space-y-1 sm:space-y-2">
                       <h3 className="text-xs font-semibold text-orange-400 uppercase tracking-wider">
                         {category.title}
                       </h3>
@@ -1575,19 +1575,19 @@ export default function ElevenLabsVoiceChatbot() {
                           <button
                             key={project.id}
                             onClick={() => selectCaseStudy(project.id)}
-                            className={`w-full text-left p-2 rounded-lg border transition-all duration-300 backdrop-blur-sm ${
+                            className={`w-full text-left p-1 sm:p-1.5 md:p-2 rounded-lg border transition-all duration-300 backdrop-blur-sm ${
                               caseStudyBrowser.selectedProject === project.id
                                 ? 'bg-orange-500/20 border-orange-500/50 text-orange-300 shadow-lg shadow-orange-500/20'
                                 : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-gray-300 hover:text-white'
                             }`}
                           >
-                            <div className="text-sm font-medium mb-1">{project.name}</div>
-                            <div className="text-xs text-gray-400 mb-1">{project.description}</div>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="text-xs font-medium mb-0.5 sm:mb-1">{project.name}</div>
+                            <div className="text-xs text-gray-400 mb-0.5 sm:mb-1 line-clamp-1 sm:line-clamp-2">{project.description}</div>
+                            <div className="flex flex-wrap gap-0.5 sm:gap-1">
                               {project.features.slice(0, 2).map((feature, index) => (
                                 <span
                                   key={index}
-                                  className="text-xs px-1.5 py-0.5 bg-white/10 rounded-full text-gray-300"
+                                  className="text-xs px-0.5 sm:px-1 md:px-1.5 py-0.5 bg-white/10 rounded-full text-gray-300"
                                 >
                                   {feature}
                                 </span>
@@ -1602,7 +1602,7 @@ export default function ElevenLabsVoiceChatbot() {
               </div>
 
               {/* Browser */}
-              <div className="flex-1 flex flex-col p-3">
+              <div className="flex-1 flex flex-col p-2 sm:p-3">
                 {caseStudyBrowser.selectedProject ? (
                   <div className="flex-1 relative bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
                     <div className="absolute inset-0 bg-white overflow-hidden rounded-xl">

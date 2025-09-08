@@ -10,8 +10,11 @@ export default function BreakpointDetector() {
     userAgent: '',
     zoom: 1
   });
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+    
     const updateScreenInfo = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
@@ -42,8 +45,8 @@ export default function BreakpointDetector() {
     return () => window.removeEventListener('resize', updateScreenInfo);
   }, []);
 
-  // Only show in development
-  if (process.env.NODE_ENV === 'production') {
+  // Only show in development and after client hydration
+  if (process.env.NODE_ENV === 'production' || !isClient) {
     return null;
   }
 
