@@ -1539,7 +1539,7 @@ export default function ElevenLabsVoiceChatbot() {
       {/* Case Study Browser */}
       {caseStudyBrowser.isOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-2">
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col shadow-2xl">
+          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl w-full max-w-6xl h-[90dvh] flex flex-col shadow-2xl">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <div className="flex items-center gap-3">

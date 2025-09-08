@@ -10,6 +10,7 @@ import Chatbot from '@/components/elevenlabs-voice-chatbot';
 import SplashScreen from '@/components/splash-screen';
 import { useState, useEffect } from 'react';
 import CustomCursor from '@/components/custom-cursor';
+import BreakpointDetector from '@/components/debug/breakpoint-detector';
 
 export default function RootLayout({
   children,
@@ -22,12 +23,26 @@ export default function RootLayout({
     <html suppressHydrationWarning>
              <head>
                <meta charSet="utf-8" />
-               <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+               <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
                <title>CognivexAI</title>
                <meta name="description" content="A discovery engine for everyone." />
                <link rel="preconnect" href="https://fonts.googleapis.com" />
                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
+               <style dangerouslySetInnerHTML={{
+                 __html: `
+                   @font-face {
+                     font-family: 'Inter';
+                     font-display: swap;
+                     font-weight: 400 700;
+                   }
+                   @font-face {
+                     font-family: 'Space Grotesk';
+                     font-display: swap;
+                     font-weight: 400 700;
+                   }
+                 `
+               }} />
              </head>
       <body className="font-body antialiased bg-white dark:bg-background" style={{ position: 'relative', minHeight: '100%', top: '0px' }}>
         <ThemeProvider
@@ -43,6 +58,7 @@ export default function RootLayout({
             <Footer />
             <Chatbot />
             <Toaster />
+            <BreakpointDetector />
           </div>
           <SplashScreen isVisible={loading} onFinished={() => setLoading(false)} />
         </ThemeProvider>
