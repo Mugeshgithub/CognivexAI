@@ -512,7 +512,7 @@ export class CognivexRAGSystem {
     }
     if (t.includes("price")) {
       const pricing = this.knowledge.pricing;
-      return `Pricing ranges from ${pricing.tiers[0].price} up to ${pricing.tiers[pricing.tiers.length - 1].price}.`;
+      return `We offer ${pricing.approach.toLowerCase()}. ${pricing.description} ${pricing.contactMessage}`;
     }
     return "Happy to provide more details — which topic are you most interested in?";
   }

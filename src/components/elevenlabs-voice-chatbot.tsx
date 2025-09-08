@@ -529,8 +529,10 @@ export default function ElevenLabsVoiceChatbot() {
         console.error('❌ Failed to initialize audio context:', error);
       }
       
-      // Load ElevenLabs voices immediately
-      loadElevenLabsVoices();
+      // Load ElevenLabs voices immediately (non-blocking)
+      loadElevenLabsVoices().catch(error => {
+        console.log('Voice loading failed, continuing with fallback:', error);
+      });
     }
     
     return () => {
@@ -561,7 +563,9 @@ export default function ElevenLabsVoiceChatbot() {
         headers: {
           'xi-api-key': ELEVENLABS_API_KEY,
           'Content-Type': 'application/json'
-        }
+        },
+        // Add timeout to prevent hanging
+        signal: AbortSignal.timeout(10000) // 10 second timeout
       });
       
       console.log('📡 Response status:', response.status);
@@ -603,13 +607,14 @@ export default function ElevenLabsVoiceChatbot() {
       
     } catch (error: any) {
       console.error('❌ Failed to load ElevenLabs voices:', error);
-      toast({
-        title: "Voice Loading Error",
-        description: `Failed to load voices: ${error.message}. Using fallback voice.`,
-        variant: "destructive",
-      });
       
+      // Don't show error toast to avoid disrupting user experience
+      // The fallback voice will work fine
       console.log('🔄 Continuing with fallback voice ID for testing');
+      
+      // Set a default voice ID to ensure the chatbot works
+      const fallbackVoiceId = '21m00Tcm4TlvDq8ikWAM';
+      setSelectedVoice(fallbackVoiceId);
     } finally {
       setIsLoadingVoices(false);
     }
@@ -1665,18 +1670,21 @@ export default function ElevenLabsVoiceChatbot() {
                           );
                         } else {
                           return (
-                            <iframe
-                              src={caseStudyBrowser.currentUrl || ''}
-                              className="w-full h-full border-0"
-                              title="Case Study Browser"
-                              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                              style={{
-                                transform: 'scale(1)',
-                                transformOrigin: 'top left',
-                                width: '100%',
-                                height: '100%'
-                              }}
-                            />
+                            <div className="w-full h-full overflow-hidden">
+                              <iframe
+                                src={caseStudyBrowser.currentUrl || ''}
+                                className="w-full h-full border-0"
+                                title="Case Study Browser"
+                                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                                style={{
+                                  transform: 'scale(0.75)',
+                                  transformOrigin: 'top left',
+                                  width: '133.33%',
+                                  height: '133.33%',
+                                  overflow: 'hidden'
+                                }}
+                              />
+                            </div>
                           );
                         }
                       })()}
