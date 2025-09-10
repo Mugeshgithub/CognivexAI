@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { AnimatedLogo } from '@/components/ui/animated-logo';
 import { Menu, X, Play, Pause, Monitor, ExternalLink, Globe } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { useLanguage } from '@/contexts/language-context';
+// import { useLanguage } from '@/contexts/language-context';
 
 const navLinks = [
   { href: '#products', label: 'About' },
@@ -107,7 +107,7 @@ export default function Header() {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [currentUrl, setCurrentUrl] = useState<string>('');
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { language, setLanguage } = useLanguage();
+  const [language, setLanguage] = useState<'en' | 'fr'>('en');
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -188,16 +188,16 @@ export default function Header() {
           ))}
           
           {/* Language Toggle */}
-          <Button
+            <Button
             onClick={toggleLanguage}
-            variant="ghost"
-            size="sm"
+              variant="ghost"
+              size="sm"
             className="text-foreground/80 hover:text-foreground hover:bg-white/10 rounded-lg px-3 py-1.5"
             title={`Switch to ${language === 'en' ? 'French' : 'English'}`}
-          >
+            >
             <Globe className="h-4 w-4 mr-1" />
             {language === 'en' ? 'EN' : 'FR'}
-          </Button>
+            </Button>
           
           {/* Simple Music Control */}
           <Button
@@ -251,14 +251,14 @@ export default function Header() {
                   {link.label}
                 </button>
               ) : (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="block text-foreground/80 transition-colors hover:text-foreground py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
+              <Link
+                key={link.href}
+                href={link.href}
+                className="block text-foreground/80 transition-colors hover:text-foreground py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
               )
             ))}
             
