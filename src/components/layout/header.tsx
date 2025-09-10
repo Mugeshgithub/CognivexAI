@@ -6,13 +6,9 @@ import { Button } from '@/components/ui/button';
 import { AnimatedLogo } from '@/components/ui/animated-logo';
 import { Menu, X, Play, Pause, Monitor, ExternalLink, Globe } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-// import { useLanguage } from '@/contexts/language-context';
+import { useLanguage } from '@/contexts/language-context';
 
-const navLinks = [
-  { href: '#products', label: 'About' },
-  { href: '#contact', label: 'Contact' },
-  { href: '#', label: 'Projects', isButton: true },
-];
+// Navigation links will be defined inside component to use translations
 
 // Case study data (same as in chatbot)
 const caseStudyCategories = [
@@ -107,7 +103,14 @@ export default function Header() {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [currentUrl, setCurrentUrl] = useState<string>('');
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [language, setLanguage] = useState<'en' | 'fr'>('en');
+  const { language, setLanguage, t } = useLanguage();
+
+  // Navigation links with translations
+  const navLinks = [
+    { href: '#products', label: t('products.about.title') },
+    { href: '#contact', label: t('common.contact') },
+    { href: '#', label: t('common.projects'), isButton: true },
+  ];
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -295,8 +298,8 @@ export default function Header() {
                   <Monitor className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400" />
                 </div>
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-white">Our Projects</h2>
-                  <p className="text-xs text-gray-300">Explore our portfolio of innovative solutions</p>
+                  <h2 className="text-base sm:text-lg font-bold text-white">{t('common.ourProjects')}</h2>
+                  <p className="text-xs text-gray-300">{t('common.explorePortfolio')}</p>
                 </div>
               </div>
               <Button
@@ -439,8 +442,8 @@ export default function Header() {
                       <div className="p-3 bg-orange-500/20 rounded-full mb-3 backdrop-blur-sm">
                         <Monitor className="h-8 w-8 mx-auto text-orange-400" />
                       </div>
-                      <h3 className="text-base font-medium text-white mb-1">Select a Project</h3>
-                      <p className="text-xs text-gray-300">Choose from our categorized portfolio to view detailed projects</p>
+                      <h3 className="text-base font-medium text-white mb-1">{t('common.selectProject')}</h3>
+                      <p className="text-xs text-gray-300">{t('common.chooseFromPortfolio')}</p>
                     </div>
                   </div>
                 )}

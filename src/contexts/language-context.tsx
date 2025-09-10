@@ -33,6 +33,13 @@ const translations = {
     'common.save': 'Save',
     'common.edit': 'Edit',
     'common.delete': 'Delete',
+    'common.contact': 'Contact',
+    'common.projects': 'Projects',
+    'common.ourProjects': 'Our Projects',
+    'common.explorePortfolio': 'Explore our portfolio of innovative solutions',
+    'common.selectProject': 'Select a Project',
+    'common.chooseFromPortfolio': 'Choose from our categorized portfolio to view detailed projects',
+    'common.explore': 'Explore',
     
     // Chatbot
     'chatbot.greeting': 'Zephyr here!',
@@ -175,6 +182,13 @@ const translations = {
     'common.save': 'Sauvegarder',
     'common.edit': 'Modifier',
     'common.delete': 'Supprimer',
+    'common.contact': 'Contact',
+    'common.projects': 'Projets',
+    'common.ourProjects': 'Nos Projets',
+    'common.explorePortfolio': 'Explorez notre portefeuille de solutions innovantes',
+    'common.selectProject': 'Sélectionner un Projet',
+    'common.chooseFromPortfolio': 'Choisissez parmi notre portefeuille catégorisé pour voir les projets détaillés',
+    'common.explore': 'Explorer',
     
     // Chatbot
     'chatbot.greeting': 'Zephyr ici !',
