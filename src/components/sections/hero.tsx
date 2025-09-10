@@ -128,10 +128,10 @@ export default function Hero() {
                             <span className="absolute -right-1 -top-1 text-sm sm:-right-2 sm:text-base md:-right-3 md:text-lg lg:-right-4 lg:text-xl xl:-right-6 xl:text-2xl">©</span>
                         </div>
                         <div className="space-y-3 sm:space-y-4">
-                          <p className="text-base text-gray-300/80 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-relaxed max-w-2xl mx-auto px-4">
+                          <p className="text-sm text-gray-300/80 sm:text-base md:text-lg lg:text-xl leading-relaxed max-w-2xl mx-auto px-4">
                             <span className="inline-block animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
                               Empowering minds,{' '}
-                              <span className="inline-block p-2 sm:p-2.5 md:p-3 rounded-lg bg-orange-500/20 text-orange-300 font-semibold text-base sm:text-lg md:text-xl lg:text-2xl animate-pulse border border-orange-400/30 mt-2 sm:mt-3">
+                              <span className="inline-block p-2 sm:p-2.5 md:p-3 rounded-lg bg-orange-500/20 text-orange-300 font-semibold text-sm sm:text-base md:text-lg animate-pulse border border-orange-400/30 mt-2 sm:mt-3">
                                 engineering magic.
                               </span>
                             </span>
@@ -141,7 +141,7 @@ export default function Hero() {
                 </div>
             </div>
             <a
-                href="#products"
+                href="#contact"
                 className="absolute bottom-6 sm:bottom-8 md:bottom-10 z-20 flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 sm:px-4 py-2 text-xs sm:text-sm text-muted-foreground backdrop-blur-sm transition-colors hover:bg-secondary"
             >
                 <span className="hidden sm:inline">Scroll to explore</span>

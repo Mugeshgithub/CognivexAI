@@ -4,8 +4,9 @@ import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { AnimatedLogo } from '@/components/ui/animated-logo';
-import { Menu, X, Play, Pause, Monitor, ExternalLink } from 'lucide-react';
+import { Menu, X, Play, Pause, Monitor, ExternalLink, Globe } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { useLanguage } from '@/contexts/language-context';
 
 const navLinks = [
   { href: '#products', label: 'About' },
@@ -106,6 +107,7 @@ export default function Header() {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [currentUrl, setCurrentUrl] = useState<string>('');
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { language, setLanguage } = useLanguage();
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -149,6 +151,10 @@ export default function Header() {
     setCurrentUrl('');
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'fr' : 'en');
+  };
+
   return (
     <header className="fixed top-0 z-40 w-full animate-fade-in bg-background/80 backdrop-blur-sm border-b border-border/20">
        <div className="container flex h-16 md:h-20 items-center justify-between px-4">
@@ -180,6 +186,18 @@ export default function Header() {
             </Link>
             )
           ))}
+          
+          {/* Language Toggle */}
+          <Button
+            onClick={toggleLanguage}
+            variant="ghost"
+            size="sm"
+            className="text-foreground/80 hover:text-foreground hover:bg-white/10 rounded-lg px-3 py-1.5"
+            title={`Switch to ${language === 'en' ? 'French' : 'English'}`}
+          >
+            <Globe className="h-4 w-4 mr-1" />
+            {language === 'en' ? 'EN' : 'FR'}
+          </Button>
           
           {/* Simple Music Control */}
           <Button
@@ -233,16 +251,28 @@ export default function Header() {
                   {link.label}
                 </button>
               ) : (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="block text-foreground/80 transition-colors hover:text-foreground py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block text-foreground/80 transition-colors hover:text-foreground py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
               )
             ))}
+            
+            {/* Mobile Language Toggle */}
+            <button
+              onClick={() => {
+                toggleLanguage();
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center gap-2 text-foreground/80 transition-colors hover:text-foreground py-2"
+            >
+              <Globe className="h-4 w-4" />
+              {language === 'en' ? 'English' : 'Français'}
+            </button>
           </nav>
         </div>
       )}
