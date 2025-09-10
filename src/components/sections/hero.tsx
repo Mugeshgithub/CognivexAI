@@ -122,16 +122,16 @@ export default function Hero() {
                 <div className="flex flex-col items-center space-y-6 sm:space-y-8 md:space-y-10">
                     <div className="space-y-4 sm:space-y-6 md:space-y-8">
                         <div className="relative inline-block">
-                            <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-9xl leading-tight">
+                            <h1 className="font-headline text-5xl font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl 2xl:text-[10rem] leading-tight">
                                 CognivexAI
                             </h1>
                             <span className="absolute -right-1 -top-1 text-sm sm:-right-2 sm:text-base md:-right-3 md:text-lg lg:-right-4 lg:text-xl xl:-right-6 xl:text-2xl">©</span>
                         </div>
                         <div className="space-y-3 sm:space-y-4">
-                          <p className="text-sm text-gray-300/80 sm:text-base md:text-lg lg:text-xl leading-relaxed max-w-2xl mx-auto px-4">
+                          <p className="text-base text-gray-300/80 sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-relaxed max-w-2xl mx-auto px-4">
                             <span className="inline-block animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
                               Empowering minds,{' '}
-                              <span className="inline-block p-2 sm:p-2.5 md:p-3 rounded-lg bg-orange-500/20 text-orange-300 font-semibold text-sm sm:text-base md:text-lg animate-pulse border border-orange-400/30 mt-2 sm:mt-3">
+                              <span className="inline-block p-2 sm:p-2.5 md:p-3 rounded-lg bg-orange-500/20 text-orange-300 font-semibold text-base sm:text-lg md:text-xl lg:text-2xl animate-pulse border border-orange-400/30 mt-2 sm:mt-3">
                                 engineering magic.
                               </span>
                             </span>
