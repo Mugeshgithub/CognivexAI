@@ -5,6 +5,7 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px; /* Ensure consistent base font size */
+  zoom: 0.875 !important; /* 1400/1600 = 0.875 - Scale from 1600px to 1400px */
 }
 
 /* Prevent zoom differences */
