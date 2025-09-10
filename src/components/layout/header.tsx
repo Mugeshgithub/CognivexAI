@@ -107,7 +107,7 @@ export default function Header() {
 
   // Navigation links with translations
   const navLinks = [
-    { href: '#products', label: t('products.about.title') },
+    { href: '#products', label: t('common.about') },
     { href: '#contact', label: t('common.contact') },
     { href: '#', label: t('common.projects'), isButton: true },
   ];
