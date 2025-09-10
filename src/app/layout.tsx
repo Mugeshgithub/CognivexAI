@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster"
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/theme-provider';
+import { LanguageProvider } from '@/contexts/language-context';
 import Chatbot from '@/components/elevenlabs-voice-chatbot';
 import SplashScreen from '@/components/splash-screen';
 import { useState, useEffect } from 'react';
@@ -38,17 +39,19 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <CustomCursor />
-          <div className={`${loading ? 'opacity-0' : 'animate-fade-in opacity-100'}`}>
-            <Header />
-            <main>{children}</main>
-            <Footer />
-            <Chatbot />
-            <Toaster />
-            <BreakpointDetector />
-          </div>
-          <SplashScreen isVisible={loading} onFinished={() => setLoading(false)} />
-          <Analytics />
+          <LanguageProvider>
+            <CustomCursor />
+            <div className={`${loading ? 'opacity-0' : 'animate-fade-in opacity-100'}`}>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+              <Chatbot />
+              <Toaster />
+              <BreakpointDetector />
+            </div>
+            <SplashScreen isVisible={loading} onFinished={() => setLoading(false)} />
+            <Analytics />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>
