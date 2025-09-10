@@ -11,7 +11,16 @@ export default function CustomCursor() {
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
-      setPosition({ x: e.clientX, y: e.clientY });
+      
+      // Account for CSS zoom scaling
+      const htmlElement = document.documentElement;
+      const computedStyle = window.getComputedStyle(htmlElement);
+      const zoom = parseFloat(computedStyle.zoom) || 1;
+      
+      const scaledX = e.clientX / zoom;
+      const scaledY = e.clientY / zoom;
+      
+      setPosition({ x: scaledX, y: scaledY });
       const target = e.target as HTMLElement;
       if (target) {
         setIsPointer(
