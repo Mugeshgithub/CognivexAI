@@ -3,11 +3,9 @@
 
 import { ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useLanguage } from '@/contexts/language-context';
 
 export default function Hero() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const { t } = useLanguage();
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -132,9 +130,9 @@ export default function Hero() {
                         <div className="space-y-3 sm:space-y-4">
                           <p className="text-sm text-gray-300/80 sm:text-base md:text-lg lg:text-xl leading-relaxed max-w-2xl mx-auto px-4">
                             <span className="inline-block animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-                              {t('hero.tagline.empowering')}{' '}
+                              Empowering minds,{' '}
                               <span className="inline-block p-2 sm:p-2.5 md:p-3 rounded-lg bg-orange-500/20 text-orange-300 font-semibold text-sm sm:text-base md:text-lg animate-pulse border border-orange-400/30 mt-2 sm:mt-3">
-                                {t('hero.tagline.engineering')}
+                                engineering magic.
                               </span>
                             </span>
                           </p>
@@ -146,8 +144,8 @@ export default function Hero() {
                 href="#contact"
                 className="absolute bottom-6 sm:bottom-8 md:bottom-10 z-20 flex items-center gap-2 rounded-full border border-border bg-background/50 px-3 sm:px-4 py-2 text-xs sm:text-sm text-muted-foreground backdrop-blur-sm transition-colors hover:bg-secondary"
             >
-                <span className="hidden sm:inline">{t('hero.scroll')}</span>
-                <span className="sm:hidden">{t('common.explore')}</span>
+                <span className="hidden sm:inline">Scroll to explore</span>
+                <span className="sm:hidden">Explore</span>
                 <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
             </a>
         </section>
