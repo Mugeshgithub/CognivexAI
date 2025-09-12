@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import CustomCursor from '@/components/custom-cursor';
 import BreakpointDetector from '@/components/debug/breakpoint-detector';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export default function RootLayout({
   children,
@@ -51,6 +52,7 @@ export default function RootLayout({
             </div>
             <SplashScreen isVisible={loading} onFinished={() => setLoading(false)} />
             <Analytics />
+            <SpeedInsights />
           </LanguageProvider>
         </ThemeProvider>
       </body>
